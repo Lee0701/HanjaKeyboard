@@ -1,4 +1,4 @@
-package ee.oyatl.hanjakbd
+package ee.oyatl.hanjakbd.layout
 
 import ee.oyatl.hanjakbd.Hangul.toJong
 import ee.oyatl.hanjakbd.Hangul.toJung

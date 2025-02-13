@@ -4,10 +4,11 @@ import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import ee.oyatl.hanjakbd.Layout2Set
 
 class DefaultKeyboardSet(
-    private val listener: Keyboard.Listener
+    private val listener: Keyboard.Listener,
+    private val normalLayout: List<String>,
+    private val shiftedLayout: List<String>
 ): KeyboardSet {
     private lateinit var mainKeyboardView: LinearLayout
     private lateinit var normalKeyboardView: View
@@ -15,8 +16,8 @@ class DefaultKeyboardSet(
     private lateinit var numberRowKeyboardView: View
 
     override fun initView(context: Context): View {
-        normalKeyboardView = DefaultMobileKeyboard(listener, Layout2Set.ROWS_LOWER).createView(context)
-        shiftedKeyboardView = DefaultMobileKeyboard(listener, Layout2Set.ROWS_UPPER).createView(context)
+        normalKeyboardView = DefaultMobileKeyboard(listener, normalLayout).createView(context)
+        shiftedKeyboardView = DefaultMobileKeyboard(listener, shiftedLayout).createView(context)
         val switcherView = FrameLayout(context)
         switcherView.addView(normalKeyboardView)
         switcherView.addView(shiftedKeyboardView)

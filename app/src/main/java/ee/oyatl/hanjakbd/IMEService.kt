@@ -2,56 +2,30 @@ package ee.oyatl.hanjakbd
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.LinearLayout
-import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
-import ee.oyatl.hanjakbd.keyboard.Keyboard
-import ee.oyatl.hanjakbd.keyboard.KeyboardSet
-import java.text.Normalizer
+import ee.oyatl.hanjakbd.input.HangulInputMode
+import ee.oyatl.hanjakbd.input.InputMode
 
-class IMEService: InputMethodService(), Keyboard.Listener {
+class IMEService: InputMethodService(), InputMode.Listener {
 
-    private val hangulComposer = HangulComposer(Layout2Set.COMBINATION_TABLE)
-    private val wordComposer = WordComposer()
+    private val inputModes: List<InputMode> = listOf(
+        HangulInputMode(this)
+    )
 
-    private lateinit var inputView: LinearLayout
-    private lateinit var keyboardSet: KeyboardSet
-    private lateinit var candidateView: CandidateView
-
-    private lateinit var dictionary: DiskDictionary
-    private lateinit var adapter: CandidateView.Adapter
-
-    private var shiftPressed: Boolean = false
-    private var candidates: List<Candidate> = listOf()
+    private var currentInputModeIndex: Int = 0
+    private val currentInputMode: InputMode get() = inputModes[currentInputModeIndex]
 
     override fun onCreate() {
         super.onCreate()
-        dictionary = DiskDictionary(resources.openRawResource(R.raw.dict))
     }
 
     override fun onCreateInputView(): View {
-        keyboardSet = DefaultKeyboardSet(this)
-
-        val height = resources.getDimensionPixelSize(R.dimen.kbd_key_height)
-        candidateView = CandidateView(this, null)
-        candidateView.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            height
-        )
-        adapter = CandidateView.Adapter { onItemClick(it) }
-        candidateView.adapter = adapter
-
-        inputView = LinearLayout(this)
-        inputView.orientation = LinearLayout.VERTICAL
-        inputView.addView(candidateView)
-        inputView.addView(keyboardSet.initView(this))
-        return inputView
+        return currentInputMode.initView(this)
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
-        updateInputView()
+        onReset()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -63,93 +37,19 @@ class IMEService: InputMethodService(), Keyboard.Listener {
         return true
     }
 
-    private fun reset() {
-        hangulComposer.reset()
-        wordComposer.reset()
+    override fun onCompose(text: String) {
+        currentInputConnection?.setComposingText(text, 1)
     }
 
-    private fun updateCandidates() {
-        adapter.submitList(candidates)
-        updateInputView()
+    override fun onCommit(text: String) {
+        currentInputConnection?.commitText(text, 1)
     }
 
-    private fun onItemClick(candidate: Candidate) {
-        val inputConnection = currentInputConnection ?: return
-        inputConnection.commitText(candidate.text, 1)
-        candidates = listOf()
-        updateCandidates()
-        reset()
+    override fun onDelete(before: Int, after: Int) {
+        currentInputConnection?.deleteSurroundingText(before, after)
     }
 
-    override fun onChar(char: Char) {
-        val inputConnection = currentInputConnection ?: return
-        if(candidates.isNotEmpty()) {
-            candidates = listOf()
-            updateCandidates()
-        }
-        val commit = normalizeOutput(hangulComposer.onChar(char))
-        val compose = normalizeOutput(hangulComposer.composing.orEmpty())
-        if(commit.isNotEmpty()) wordComposer.commit(commit)
-        wordComposer.compose(compose)
-        inputConnection.setComposingText(wordComposer.word, 1)
-
-        if(shiftPressed) {
-            shiftPressed = false
-            updateInputView()
-        }
+    override fun onReset() {
+        setInputView(currentInputMode.getView())
     }
-
-    override fun onSpace() {
-        val inputConnection = currentInputConnection ?: return
-        if(candidates.isEmpty()) {
-            if(wordComposer.word.isEmpty()) {
-                inputConnection.commitText(" ", 1)
-                reset()
-            } else {
-                candidates = dictionary.search(wordComposer.word)
-                    .map { Candidate(it.result, it.frequency.toFloat()) }
-                    .sortedByDescending { it.score }
-                candidates = listOf(Candidate(wordComposer.word, 0f)) + candidates
-                updateCandidates()
-            }
-        } else {
-            inputConnection.commitText(candidates.firstOrNull()?.text.orEmpty() + " ", 1)
-            candidates = listOf()
-            updateCandidates()
-            reset()
-        }
-    }
-
-    override fun onDelete() {
-        val inputConnection = currentInputConnection ?: return
-        if(candidates.isNotEmpty()) {
-            candidates = listOf()
-            updateCandidates()
-        } else {
-            val length = hangulComposer.onDelete()
-            val compose = normalizeOutput(hangulComposer.composing.orEmpty())
-            val result = wordComposer.delete(length)
-            if(!result) inputConnection.deleteSurroundingText(1, 0)
-            wordComposer.compose(compose)
-            inputConnection.setComposingText(wordComposer.word, 1)
-        }
-    }
-
-    override fun onShift() {
-        shiftPressed = !shiftPressed
-        updateInputView()
-    }
-
-    private fun updateInputView() {
-        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
-        setInputView(inputView)
-        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
-    }
-
-    private fun normalizeOutput(text: String): String {
-        val nfc = Normalizer.normalize(text, Normalizer.Form.NFC)
-        val compat = nfc.map { Hangul.stdToCompat(it) }.joinToString("")
-        return compat
-    }
-
 }

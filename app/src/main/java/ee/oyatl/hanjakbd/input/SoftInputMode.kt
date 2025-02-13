@@ -10,7 +10,6 @@ abstract class SoftInputMode(
     private val normalLayout: List<String>,
     private val shiftedLayout: List<String>
 ): InputMode {
-
     protected var shiftPressed: Boolean = false
     protected lateinit var inputView: LinearLayout
     protected lateinit var keyboardSet: KeyboardSet

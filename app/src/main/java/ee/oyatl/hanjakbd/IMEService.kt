@@ -22,7 +22,8 @@ class IMEService: InputMethodService(), InputMode.Listener {
     }
 
     override fun onCreateInputView(): View {
-        return currentInputMode.initView(this)
+        inputModes.forEach { it.initView(this) }
+        return currentInputMode.getView()
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
@@ -49,6 +50,12 @@ class IMEService: InputMethodService(), InputMode.Listener {
 
     override fun onDelete(before: Int, after: Int) {
         currentInputConnection?.deleteSurroundingText(before, after)
+    }
+
+    override fun onSwitch(type: InputMode.SwitchType) {
+        currentInputModeIndex += 1
+        if(currentInputModeIndex !in inputModes.indices) currentInputModeIndex = 0
+        onReset()
     }
 
     override fun onReset() {

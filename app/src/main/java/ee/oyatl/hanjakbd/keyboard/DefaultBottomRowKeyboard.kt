@@ -15,7 +15,11 @@ class DefaultBottomRowKeyboard(
             R.drawable.baseline_space_bar_24,
             4.0f
         ) { listener.onSpace() })
-        bottomRow.root.addView(buildSpacer(context, 3.0f))
+        bottomRow.root.addView(buildSpecialKey(
+            context,
+            R.drawable.baseline_language_24,
+            1.0f) { listener.onLanguage() })
+        bottomRow.root.addView(buildSpacer(context, 2.0f))
         return listOf(bottomRow)
     }
 }

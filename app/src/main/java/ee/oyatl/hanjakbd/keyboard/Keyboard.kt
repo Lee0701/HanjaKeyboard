@@ -13,5 +13,7 @@ interface Keyboard {
         fun onSpace()
         fun onDelete()
         fun onShift()
+        fun onLanguage()
+        fun onSymbol()
     }
 }

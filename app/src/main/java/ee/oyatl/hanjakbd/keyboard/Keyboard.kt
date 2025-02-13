@@ -1,4 +1,4 @@
-package ee.oyatl.hanjakbd
+package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
 import android.view.View

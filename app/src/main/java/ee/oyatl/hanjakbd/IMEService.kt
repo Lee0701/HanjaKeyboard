@@ -2,9 +2,12 @@ package ee.oyatl.hanjakbd
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.FrameLayout
 import android.widget.LinearLayout
+import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
+import ee.oyatl.hanjakbd.keyboard.Keyboard
+import ee.oyatl.hanjakbd.keyboard.KeyboardSet
 import java.text.Normalizer
 
 class IMEService: InputMethodService(), Keyboard.Listener {
@@ -12,10 +15,9 @@ class IMEService: InputMethodService(), Keyboard.Listener {
     private val hangulComposer = HangulComposer(Layout2Set.COMBINATION_TABLE)
     private val wordComposer = WordComposer()
 
+    private lateinit var inputView: LinearLayout
+    private lateinit var keyboardSet: KeyboardSet
     private lateinit var candidateView: CandidateView
-    private lateinit var normalKeyboardView: View
-    private lateinit var shiftedKeyboardView: View
-    private lateinit var numberRowKeyboardView: View
 
     private lateinit var dictionary: DiskDictionary
     private lateinit var adapter: CandidateView.Adapter
@@ -29,36 +31,27 @@ class IMEService: InputMethodService(), Keyboard.Listener {
     }
 
     override fun onCreateInputView(): View {
-        normalKeyboardView = DefaultMobileKeyboard(this, Layout2Set.ROWS_LOWER).createView(this)
-        shiftedKeyboardView = DefaultMobileKeyboard(this, Layout2Set.ROWS_UPPER).createView(this)
-        val mainKeyboardView = FrameLayout(this)
-        mainKeyboardView.addView(normalKeyboardView)
-        mainKeyboardView.addView(shiftedKeyboardView)
-        val bottomRowKeyboardView = DefaultBottomRowKeyboard(this).createView(this)
-        numberRowKeyboardView = DefaultNumberRowKeyboard(this).createView(this)
+        keyboardSet = DefaultKeyboardSet(this)
 
+        val height = resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         candidateView = CandidateView(this, null)
+        candidateView.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            height
+        )
         adapter = CandidateView.Adapter { onItemClick(it) }
         candidateView.adapter = adapter
 
-        val topRowView = FrameLayout(this)
-        topRowView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            resources.getDimensionPixelSize(R.dimen.kbd_key_height)
-        )
-        topRowView.addView(candidateView)
-        topRowView.addView(numberRowKeyboardView)
-
-        val inputView = LinearLayout(this)
+        inputView = LinearLayout(this)
         inputView.orientation = LinearLayout.VERTICAL
-        inputView.addView(topRowView)
-        inputView.addView(mainKeyboardView)
-        inputView.addView(bottomRowKeyboardView)
+        inputView.addView(candidateView)
+        inputView.addView(keyboardSet.initView(this))
         return inputView
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
+        updateInputView()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -73,13 +66,11 @@ class IMEService: InputMethodService(), Keyboard.Listener {
     private fun reset() {
         hangulComposer.reset()
         wordComposer.reset()
-        numberRowKeyboardView.bringToFront()
     }
 
     private fun updateCandidates() {
         adapter.submitList(candidates)
-        if(candidates.isEmpty()) numberRowKeyboardView.bringToFront()
-        else candidateView.bringToFront()
+        updateInputView()
     }
 
     private fun onItemClick(candidate: Candidate) {
@@ -104,7 +95,7 @@ class IMEService: InputMethodService(), Keyboard.Listener {
 
         if(shiftPressed) {
             shiftPressed = false
-            updateShiftState()
+            updateInputView()
         }
     }
 
@@ -146,12 +137,13 @@ class IMEService: InputMethodService(), Keyboard.Listener {
 
     override fun onShift() {
         shiftPressed = !shiftPressed
-        updateShiftState()
+        updateInputView()
     }
 
-    private fun updateShiftState() {
-        if(shiftPressed) shiftedKeyboardView.bringToFront()
-        else normalKeyboardView.bringToFront()
+    private fun updateInputView() {
+        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
+        setInputView(inputView)
+        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun normalizeOutput(text: String): String {

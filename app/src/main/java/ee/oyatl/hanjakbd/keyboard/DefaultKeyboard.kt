@@ -1,10 +1,11 @@
-package ee.oyatl.hanjakbd
+package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
+import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.databinding.KbdKeyBinding
 import ee.oyatl.hanjakbd.databinding.KbdKeyboardBinding
 import ee.oyatl.hanjakbd.databinding.KbdRowBinding

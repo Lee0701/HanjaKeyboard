@@ -18,25 +18,23 @@ import java.text.Normalizer
 
 class HangulInputMode(
     override val listener: InputMode.Listener
-): InputMode {
+): SoftInputMode(
+    Layout2Set.ROWS_LOWER,
+    Layout2Set.ROWS_UPPER
+) {
 
     private val hangulComposer = HangulComposer(Layout2Set.COMBINATION_TABLE)
     private val wordComposer = WordComposer()
 
-    private lateinit var inputView: LinearLayout
-    private lateinit var keyboardSet: KeyboardSet
     private lateinit var candidateView: CandidateView
 
     private lateinit var dictionary: DiskDictionary
     private lateinit var adapter: CandidateView.Adapter
 
-    private var shiftPressed: Boolean = false
     private var candidates: List<Candidate> = listOf()
 
     override fun initView(context: Context): View {
         dictionary = DiskDictionary(context.resources.openRawResource(R.raw.dict))
-
-        keyboardSet = DefaultKeyboardSet(this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER)
 
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         candidateView = CandidateView(context, null)
@@ -47,16 +45,8 @@ class HangulInputMode(
         adapter = CandidateView.Adapter { onItemClick(it) }
         candidateView.adapter = adapter
 
-        inputView = LinearLayout(context)
-        inputView.orientation = LinearLayout.VERTICAL
-        inputView.addView(candidateView)
-        inputView.addView(keyboardSet.initView(context))
-        return inputView
-    }
-
-    override fun getView(): View {
-        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
-        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
+        val inputView = super.initView(context) as ViewGroup
+        inputView.addView(candidateView, 0)
         return inputView
     }
 
@@ -111,25 +101,20 @@ class HangulInputMode(
         }
     }
 
-    override fun onShift() {
-        shiftPressed = !shiftPressed
-        updateInputView()
-    }
-
     override fun reset() {
+        super.reset()
         hangulComposer.reset()
         wordComposer.reset()
+    }
+
+    override fun updateInputView() {
+        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
+        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun updateCandidates() {
         adapter.submitList(candidates)
         updateInputView()
-    }
-
-    private fun updateInputView() {
-        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
-        listener.onReset()
-        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun onItemClick(candidate: Candidate) {

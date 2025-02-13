@@ -3,12 +3,14 @@ package ee.oyatl.hanjakbd
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import ee.oyatl.hanjakbd.input.AlphabetInputMode
 import ee.oyatl.hanjakbd.input.HangulInputMode
 import ee.oyatl.hanjakbd.input.InputMode
 
 class IMEService: InputMethodService(), InputMode.Listener {
 
     private val inputModes: List<InputMode> = listOf(
+        AlphabetInputMode(this),
         HangulInputMode(this)
     )
 

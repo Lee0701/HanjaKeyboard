@@ -12,6 +12,7 @@ import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
 import java.text.Normalizer
+import kotlin.math.log2
 
 class HangulInputMode(
     override val listener: InputMode.Listener
@@ -132,13 +133,18 @@ class HangulInputMode(
     }
 
     private fun convert(text: String): List<Candidate> {
-        return (1 .. text.length).reversed().map { l ->
-            val key = text.take(l)
-            (hanjaDict.search(key) + hangulDict.search(key))
+        val hangulResult = (1 .. text.length).reversed().map { l ->
+            hangulDict.search(text.take(l)).filter { it.result.length == l }
+        }.flatten().take(1)
+            .map { Candidate(it.result, it.frequency.toFloat()) }
+        val hangulSingleResult = hangulDict.search(text.take(1))
+            .map { Candidate(it.result, it.frequency.toFloat()) }
+        val hanjaResult = (1 .. text.length).map { l ->
+            hanjaDict.search(text.take(l))
                 .filter { it.result.length == l }
-                .sortedByDescending { it.frequency }
-                .map { Candidate(it.result, it.frequency.toFloat()) }
-        }.flatten()
+                .map { Candidate(it.result, log2(it.frequency.toFloat()) * l) }
+        }.flatten().sortedByDescending { it.score }
+        return (hangulResult + hangulSingleResult).distinct() + hanjaResult
     }
 
     private fun normalizeOutput(text: String): String {

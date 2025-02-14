@@ -52,8 +52,8 @@ class DiskDictionary(input: InputStream) {
     }
 
     data class Entry(
-            val result: String,
-            val extra: String,
-            val frequency: Int
+        val result: String,
+        val extra: String,
+        val frequency: Int
     )
 }

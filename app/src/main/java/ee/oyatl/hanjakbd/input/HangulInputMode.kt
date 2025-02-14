@@ -24,13 +24,15 @@ class HangulInputMode(
 
     private lateinit var candidateView: CandidateView
 
-    private lateinit var dictionary: DiskDictionary
+    private lateinit var hanjaDict: DiskDictionary
+    private lateinit var hangulDict: DiskDictionary
     private lateinit var adapter: CandidateView.Adapter
 
     private var candidates: List<Candidate> = listOf()
 
     override fun initView(context: Context): View {
-        dictionary = DiskDictionary(context.resources.openRawResource(R.raw.dict))
+        hanjaDict = DiskDictionary(context.resources.openRawResource(R.raw.hanja))
+        hangulDict = DiskDictionary(context.resources.openRawResource(R.raw.hangul))
 
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         candidateView = CandidateView(context, null)
@@ -72,7 +74,7 @@ class HangulInputMode(
                 convertWordAndDisplayCandidates()
             }
         } else {
-            listener.onCommit(candidates.firstOrNull()?.text.orEmpty() + " ")
+            listener.onCommit(wordComposer.word + " ")
             candidates = listOf()
             updateCandidates()
             reset()
@@ -120,10 +122,7 @@ class HangulInputMode(
 
     private fun convertWordAndDisplayCandidates() {
         candidates = convert(wordComposer.word)
-        candidates = listOf(
-            Candidate(wordComposer.word, 0f),
-            Candidate(wordComposer.word.take(1), 0f)
-        ) + candidates
+        if(candidates.isEmpty()) candidates = listOf(Candidate(wordComposer.word, 0f))
         updateCandidates()
     }
 
@@ -134,7 +133,9 @@ class HangulInputMode(
 
     private fun convert(text: String): List<Candidate> {
         return (1 .. text.length).reversed().map { l ->
-            dictionary.search(text.take(l))
+            val key = text.take(l)
+            (hanjaDict.search(key) + hangulDict.search(key))
+                .filter { it.result.length == l }
                 .sortedByDescending { it.frequency }
                 .map { Candidate(it.result, it.frequency.toFloat()) }
         }.flatten()

@@ -3,17 +3,14 @@ package ee.oyatl.hanjakbd.input
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import ee.oyatl.hanjakbd.Candidate
 import ee.oyatl.hanjakbd.CandidateView
-import ee.oyatl.hanjakbd.DiskDictionary
+import ee.oyatl.hanjakbd.dictionary.DiskDictionary
 import ee.oyatl.hanjakbd.Hangul
 import ee.oyatl.hanjakbd.HangulComposer
 import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
-import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
-import ee.oyatl.hanjakbd.keyboard.KeyboardSet
 import java.text.Normalizer
 
 class HangulInputMode(
@@ -22,7 +19,6 @@ class HangulInputMode(
     Layout2Set.ROWS_LOWER,
     Layout2Set.ROWS_UPPER
 ) {
-
     private val hangulComposer = HangulComposer(Layout2Set.COMBINATION_TABLE)
     private val wordComposer = WordComposer()
 
@@ -73,11 +69,7 @@ class HangulInputMode(
                 listener.onCommit(" ")
                 reset()
             } else {
-                candidates = dictionary.search(wordComposer.word)
-                    .map { Candidate(it.result, it.frequency.toFloat()) }
-                    .sortedByDescending { it.score }
-                candidates = listOf(Candidate(wordComposer.word, 0f)) + candidates
-                updateCandidates()
+                convertWordAndDisplayCandidates()
             }
         } else {
             listener.onCommit(candidates.firstOrNull()?.text.orEmpty() + " ")
@@ -119,9 +111,33 @@ class HangulInputMode(
 
     private fun onItemClick(candidate: Candidate) {
         listener.onCommit(candidate.text)
-        candidates = listOf()
+        wordComposer.consume(candidate.text.length)
+        listener.onCompose(wordComposer.word)
+        if(wordComposer.word.isNotEmpty()) convertWordAndDisplayCandidates()
+        else clearCandidates()
+        hangulComposer.reset()
+    }
+
+    private fun convertWordAndDisplayCandidates() {
+        candidates = convert(wordComposer.word)
+        candidates = listOf(
+            Candidate(wordComposer.word, 0f),
+            Candidate(wordComposer.word.take(1), 0f)
+        ) + candidates
         updateCandidates()
-        reset()
+    }
+
+    private fun clearCandidates() {
+        candidates = emptyList()
+        updateCandidates()
+    }
+
+    private fun convert(text: String): List<Candidate> {
+        return (1 .. text.length).reversed().map { l ->
+            dictionary.search(text.take(l))
+                .sortedByDescending { it.frequency }
+                .map { Candidate(it.result, it.frequency.toFloat()) }
+        }.flatten()
     }
 
     private fun normalizeOutput(text: String): String {

@@ -21,6 +21,13 @@ class WordComposer {
         return true
     }
 
+    fun consume(length: Int) {
+        commit(composing)
+        val newHistory = history.map { it.drop(length) }.filter { it.isNotEmpty() }
+        history.clear()
+        history += newHistory
+    }
+
     fun reset() {
         history.clear()
         composing = ""

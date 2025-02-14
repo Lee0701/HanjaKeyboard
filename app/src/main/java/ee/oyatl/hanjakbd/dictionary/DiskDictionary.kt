@@ -1,4 +1,4 @@
-package ee.oyatl.hanjakbd
+package ee.oyatl.hanjakbd.dictionary
 
 import java.io.InputStream
 import java.lang.StringBuilder

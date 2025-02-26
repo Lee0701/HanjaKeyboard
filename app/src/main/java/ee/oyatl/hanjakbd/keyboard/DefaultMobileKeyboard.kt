@@ -20,12 +20,12 @@ class DefaultMobileKeyboard(
             context,
             R.drawable.baseline_shift_24px,
             1.5f
-        ) { listener.onShift() }, 0)
+        ) { listener.onSpecial(Keyboard.SpecialKey.Shift) }, 0)
         row3.root.addView(buildSpecialKey(
             context,
             R.drawable.baseline_backspace_24,
             1.5f
-        ) { listener.onDelete() })
+        ) { listener.onSpecial(Keyboard.SpecialKey.Delete) })
 
         return listOf(row1, row2, row3)
     }

@@ -1,5 +1,6 @@
 package ee.oyatl.hanjakbd.input
 
+import ee.oyatl.hanjakbd.keyboard.Keyboard
 import ee.oyatl.hanjakbd.layout.LayoutQwerty
 
 class AlphabetInputMode(
@@ -16,11 +17,24 @@ class AlphabetInputMode(
         }
     }
 
-    override fun onSpace() {
+    override fun onSpecial(type: Keyboard.SpecialKey) {
+        when(type) {
+            Keyboard.SpecialKey.Space -> onSpace()
+            Keyboard.SpecialKey.Return -> onReturn()
+            Keyboard.SpecialKey.Delete -> onDelete()
+            else -> super.onSpecial(type)
+        }
+    }
+
+    private fun onSpace() {
         listener.onCommit(" ")
     }
 
-    override fun onDelete() {
+    private fun onReturn() {
+        listener.onCommit("\n")
+    }
+
+    private fun onDelete() {
         listener.onDelete(1, 0)
     }
 }

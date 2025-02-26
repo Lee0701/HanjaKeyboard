@@ -10,10 +10,12 @@ interface Keyboard {
 
     interface Listener {
         fun onChar(char: Char)
-        fun onSpace()
-        fun onDelete()
-        fun onShift()
-        fun onLanguage()
-        fun onSymbol()
+        fun onSpecial(type: SpecialKey)
+    }
+
+    enum class SpecialKey {
+        Shift, Caps,
+        Space, Return, Delete,
+        Language, Symbols,
     }
 }

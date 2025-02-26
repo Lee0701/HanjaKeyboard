@@ -3,7 +3,9 @@ package ee.oyatl.hanjakbd.input
 import android.content.Context
 import android.view.View
 import android.widget.LinearLayout
+import ee.oyatl.hanjakbd.input.InputMode.SwitchType
 import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
+import ee.oyatl.hanjakbd.keyboard.Keyboard
 import ee.oyatl.hanjakbd.keyboard.KeyboardSet
 
 abstract class SoftInputMode(
@@ -28,9 +30,21 @@ abstract class SoftInputMode(
         return inputView
     }
 
-    override fun onShift() {
+    override fun onSpecial(type: Keyboard.SpecialKey) {
+        when(type) {
+            Keyboard.SpecialKey.Shift -> onShift()
+            Keyboard.SpecialKey.Language -> onLanguage()
+            else -> return
+        }
+    }
+
+    private fun onShift() {
         shiftPressed = !shiftPressed
         updateInputView()
+    }
+
+    private fun onLanguage() {
+        listener.onSwitch(SwitchType.NextInputMode)
     }
 
     open fun updateInputView() {

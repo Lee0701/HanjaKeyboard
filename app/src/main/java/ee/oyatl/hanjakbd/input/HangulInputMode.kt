@@ -11,6 +11,7 @@ import ee.oyatl.hanjakbd.HangulComposer
 import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
+import ee.oyatl.hanjakbd.keyboard.Keyboard
 import java.text.Normalizer
 import kotlin.math.log2
 
@@ -66,7 +67,16 @@ class HangulInputMode(
         }
     }
 
-    override fun onSpace() {
+    override fun onSpecial(type: Keyboard.SpecialKey) {
+        when(type) {
+            Keyboard.SpecialKey.Space -> onSpace()
+            Keyboard.SpecialKey.Return -> onReturn()
+            Keyboard.SpecialKey.Delete -> onDelete()
+            else -> super.onSpecial(type)
+        }
+    }
+
+    private fun onSpace() {
         if(candidates.isEmpty()) {
             if(wordComposer.word.isEmpty()) {
                 listener.onCommit(" ")
@@ -76,13 +86,25 @@ class HangulInputMode(
             }
         } else {
             listener.onCommit(wordComposer.word + " ")
-            candidates = listOf()
+            candidates = emptyList()
             updateCandidates()
             reset()
         }
     }
 
-    override fun onDelete() {
+    private fun onReturn() {
+        if(candidates.isEmpty()) {
+            listener.onCommit("\n")
+            reset()
+        } else {
+            listener.onCommit(wordComposer.word + " ")
+            candidates = emptyList()
+            updateCandidates()
+            reset()
+        }
+    }
+
+    private fun onDelete() {
         if(candidates.isNotEmpty()) {
             candidates = listOf()
             updateCandidates()

@@ -11,13 +11,6 @@ interface InputMode: Keyboard.Listener {
     fun initView(context: Context): View
     fun getView(): View
 
-    override fun onSymbol() {
-    }
-
-    override fun onLanguage() {
-        listener.onSwitch(SwitchType.NextInputMode)
-    }
-
     interface Listener {
         fun onCompose(text: String)
         fun onCommit(text: String)

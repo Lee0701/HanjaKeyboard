@@ -54,7 +54,13 @@ abstract class SoftInputMode(
             Keyboard.ShiftState.Unpressed -> {
                 shiftState = Keyboard.ShiftState.Pressed
             }
-            else -> {
+            Keyboard.ShiftState.Pressed -> {
+                val diff = System.currentTimeMillis() - shiftTime
+                if(diff < 300) shiftState = Keyboard.ShiftState.Locked
+                else shiftState = Keyboard.ShiftState.Unpressed
+            }
+            Keyboard.ShiftState.Locked -> {
+                shiftState = Keyboard.ShiftState.Unpressed
             }
         }
     }
@@ -64,13 +70,10 @@ abstract class SoftInputMode(
             Keyboard.ShiftState.Unpressed -> {
             }
             Keyboard.ShiftState.Pressed -> {
-                val diff = System.currentTimeMillis() - shiftTime
-                if(diff < 300) shiftState = Keyboard.ShiftState.Locked
-                else if(inputWhileShifted) shiftState = Keyboard.ShiftState.Unpressed
+                if(inputWhileShifted) shiftState = Keyboard.ShiftState.Unpressed
                 else shiftState = Keyboard.ShiftState.Pressed
             }
             Keyboard.ShiftState.Locked -> {
-                shiftState = Keyboard.ShiftState.Unpressed
             }
         }
         shiftTime = System.currentTimeMillis()

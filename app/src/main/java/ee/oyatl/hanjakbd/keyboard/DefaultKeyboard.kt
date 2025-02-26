@@ -77,15 +77,18 @@ abstract class DefaultKeyboard(
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         val key = KbdKeyBinding.inflate(inflater)
         key.icon.setImageResource(icon)
-        key.root.setOnTouchListener { _, event ->
+        key.root.setOnTouchListener { view, event ->
             when(event.actionMasked) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     onShift(true)
+                    view.isPressed = true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     onShift(false)
+                    view.isPressed = false
                 }
             }
+            view.invalidate()
             true
         }
         key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {

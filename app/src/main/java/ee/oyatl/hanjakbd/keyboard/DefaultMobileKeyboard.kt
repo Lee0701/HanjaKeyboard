@@ -6,7 +6,8 @@ import ee.oyatl.hanjakbd.databinding.KbdRowBinding
 
 class DefaultMobileKeyboard(
     override val listener: Keyboard.Listener,
-    private val rows: List<String>
+    private val rows: List<String>,
+    private val shiftState: Keyboard.ShiftState
 ): DefaultKeyboard(listener) {
     override fun buildRows(context: Context): List<KbdRowBinding> {
         val row1 = buildRow(context, rows[0])
@@ -16,11 +17,17 @@ class DefaultMobileKeyboard(
         row2.root.addView(buildSpacer(context, 0.5f), 0)
         row2.root.addView(buildSpacer(context, 0.5f))
 
-        row3.root.addView(buildSpecialKey(
+        val icon = when(shiftState) {
+            Keyboard.ShiftState.Unpressed -> R.drawable.baseline_shift_24
+            Keyboard.ShiftState.Pressed -> R.drawable.baseline_shift_fill_24
+            Keyboard.ShiftState.Locked -> R.drawable.baseline_shift_lock_fill_24
+        }
+
+        row3.root.addView(buildShiftKey(
             context,
-            R.drawable.baseline_shift_24px,
+            icon,
             1.5f
-        ) { listener.onSpecial(Keyboard.SpecialKey.Shift) }, 0)
+        ) { pressed -> listener.onShift(pressed) }, 0)
         row3.root.addView(buildSpecialKey(
             context,
             R.drawable.baseline_backspace_24,

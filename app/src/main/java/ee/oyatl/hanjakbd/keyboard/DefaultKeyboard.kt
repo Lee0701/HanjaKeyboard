@@ -1,7 +1,9 @@
 package ee.oyatl.hanjakbd.keyboard
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
@@ -58,6 +60,34 @@ abstract class DefaultKeyboard(
         val key = KbdKeyBinding.inflate(inflater)
         key.icon.setImageResource(icon)
         key.root.setOnClickListener { onClick() }
+        key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
+            weight = width
+        }
+        return key.root
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    protected fun buildShiftKey(
+        context: Context,
+        @DrawableRes icon: Int,
+        width: Float,
+        onShift: (Boolean) -> Unit
+    ): View {
+        val inflater = LayoutInflater.from(context)
+        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
+        val key = KbdKeyBinding.inflate(inflater)
+        key.icon.setImageResource(icon)
+        key.root.setOnTouchListener { _, event ->
+            when(event.actionMasked) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    onShift(true)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    onShift(false)
+                }
+            }
+            true
+        }
         key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
             weight = width
         }

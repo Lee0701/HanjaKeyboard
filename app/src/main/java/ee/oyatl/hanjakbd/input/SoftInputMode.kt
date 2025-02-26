@@ -7,12 +7,16 @@ import ee.oyatl.hanjakbd.input.InputMode.SwitchType
 import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
 import ee.oyatl.hanjakbd.keyboard.Keyboard
 import ee.oyatl.hanjakbd.keyboard.KeyboardSet
+import java.util.concurrent.locks.Lock
 
 abstract class SoftInputMode(
     private val normalLayout: List<String>,
     private val shiftedLayout: List<String>
 ): InputMode {
-    protected var shiftPressed: Boolean = false
+    protected var shiftState: Keyboard.ShiftState = Keyboard.ShiftState.Unpressed
+    private var shiftPressing: Boolean = false
+    private var shiftTime: Long = 0
+    private var inputWhileShifted: Boolean = false
     protected lateinit var inputView: LinearLayout
     protected lateinit var keyboardSet: KeyboardSet
 
@@ -32,23 +36,64 @@ abstract class SoftInputMode(
 
     override fun onSpecial(type: Keyboard.SpecialKey) {
         when(type) {
-            Keyboard.SpecialKey.Shift -> onShift()
             Keyboard.SpecialKey.Language -> onLanguage()
             else -> return
         }
     }
 
-    private fun onShift() {
-        shiftPressed = !shiftPressed
-        updateInputView()
+    override fun onShift(pressed: Boolean) {
+        shiftPressing = pressed
+        val oldShiftState = shiftState
+        if(pressed) onShiftPressed()
+        else onShiftReleased()
+        if(shiftState != oldShiftState) updateInputView()
+    }
+
+    private fun onShiftPressed() {
+        when(shiftState) {
+            Keyboard.ShiftState.Unpressed -> {
+                shiftState = Keyboard.ShiftState.Pressed
+            }
+            else -> {
+            }
+        }
+    }
+
+    private fun onShiftReleased() {
+        when(shiftState) {
+            Keyboard.ShiftState.Unpressed -> {
+            }
+            Keyboard.ShiftState.Pressed -> {
+                val diff = System.currentTimeMillis() - shiftTime
+                if(diff < 300) shiftState = Keyboard.ShiftState.Locked
+                else if(inputWhileShifted) shiftState = Keyboard.ShiftState.Unpressed
+                else shiftState = Keyboard.ShiftState.Pressed
+            }
+            Keyboard.ShiftState.Locked -> {
+                shiftState = Keyboard.ShiftState.Unpressed
+            }
+        }
+        shiftTime = System.currentTimeMillis()
+        inputWhileShifted = false
     }
 
     private fun onLanguage() {
         listener.onSwitch(SwitchType.NextInputMode)
     }
 
+    protected fun autoReleaseShift() {
+        if(shiftState == Keyboard.ShiftState.Pressed) {
+            if(!shiftPressing) {
+                shiftState = Keyboard.ShiftState.Unpressed
+                updateInputView()
+            } else {
+                inputWhileShifted = true
+            }
+        }
+    }
+
     open fun updateInputView() {
-        keyboardSet.getView(shiftPressed, false)
+        keyboardSet.getView(shiftState, false)
     }
 
     override fun reset() {

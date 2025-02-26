@@ -11,10 +11,7 @@ class AlphabetInputMode(
 ) {
     override fun onChar(char: Char) {
         listener.onCommit(char.toString())
-        if(shiftPressed) {
-            shiftPressed = false
-            updateInputView()
-        }
+        autoReleaseShift()
     }
 
     override fun onSpecial(type: Keyboard.SpecialKey) {

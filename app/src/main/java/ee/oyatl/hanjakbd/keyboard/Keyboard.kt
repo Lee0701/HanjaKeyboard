@@ -11,11 +11,16 @@ interface Keyboard {
     interface Listener {
         fun onChar(char: Char)
         fun onSpecial(type: SpecialKey)
+        fun onShift(pressed: Boolean)
     }
 
     enum class SpecialKey {
-        Shift, Caps,
+        Caps,
         Space, Return, Delete,
         Language, Symbols,
+    }
+
+    enum class ShiftState {
+        Unpressed, Pressed, Locked
     }
 }

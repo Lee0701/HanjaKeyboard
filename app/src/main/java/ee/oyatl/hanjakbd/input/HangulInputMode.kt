@@ -60,11 +60,7 @@ class HangulInputMode(
         if(commit.isNotEmpty()) wordComposer.commit(commit)
         wordComposer.compose(compose)
         listener.onCompose(wordComposer.word)
-
-        if(shiftPressed) {
-            shiftPressed = false
-            updateInputView()
-        }
+        autoReleaseShift()
     }
 
     override fun onSpecial(type: Keyboard.SpecialKey) {
@@ -125,7 +121,7 @@ class HangulInputMode(
     }
 
     override fun updateInputView() {
-        keyboardSet.getView(shiftPressed, candidates.isNotEmpty())
+        keyboardSet.getView(shiftState, candidates.isNotEmpty())
         candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 

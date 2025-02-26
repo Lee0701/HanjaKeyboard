@@ -19,7 +19,10 @@ class HangulComposer(
                     else return commitAndCompose(Hangul.toCho(char).toString())
                 }
                 Hangul.Type.Jung -> {
-                    history += composing + Hangul.toJong(char).toString()
+                    val cho = Hangul.toCho(char)
+                    val jong = Hangul.toJong(char)
+                    if(jong != ' ') history += composing + jong.toString()
+                    else return commitAndCompose(cho.toString())
                 }
                 Hangul.Type.Jong -> {
                     val combination = combinationTable[last to Hangul.toJong(char)]

@@ -67,11 +67,11 @@ abstract class DefaultKeyboard(
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    protected fun buildShiftKey(
+    protected fun buildDownUpKey(
         context: Context,
         @DrawableRes icon: Int,
         width: Float,
-        onShift: (Boolean) -> Unit
+        onTouch: (Boolean) -> Unit
     ): View {
         val inflater = LayoutInflater.from(context)
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
@@ -80,11 +80,11 @@ abstract class DefaultKeyboard(
         key.root.setOnTouchListener { view, event ->
             when(event.actionMasked) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                    onShift(true)
+                    onTouch(true)
                     view.isPressed = true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
-                    onShift(false)
+                    onTouch(false)
                     view.isPressed = false
                 }
             }

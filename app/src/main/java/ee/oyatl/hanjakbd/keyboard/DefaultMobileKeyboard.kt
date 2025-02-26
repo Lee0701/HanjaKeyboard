@@ -1,6 +1,8 @@
 package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.databinding.KbdRowBinding
 
@@ -23,16 +25,32 @@ class DefaultMobileKeyboard(
             Keyboard.ShiftState.Locked -> R.drawable.baseline_shift_lock_fill_24
         }
 
-        row3.root.addView(buildShiftKey(
+        row3.root.addView(buildDownUpKey(
             context,
             icon,
             1.5f
         ) { pressed -> listener.onShift(pressed) }, 0)
-        row3.root.addView(buildSpecialKey(
+
+        val handler = Handler(Looper.getMainLooper())
+        fun repeat() {
+            listener.onSpecial(Keyboard.SpecialKey.Delete)
+            handler.postDelayed({ repeat() }, 50)
+        }
+        val onDelete = { pressed: Boolean ->
+            if(pressed) {
+                listener.onSpecial(Keyboard.SpecialKey.Delete)
+                handler.postDelayed({ repeat() }, 500)
+            } else {
+                handler.removeCallbacksAndMessages(null)
+            }
+            Unit
+        }
+        row3.root.addView(buildDownUpKey(
             context,
             R.drawable.baseline_backspace_24,
-            1.5f
-        ) { listener.onSpecial(Keyboard.SpecialKey.Delete) })
+            1.5f,
+            onDelete
+        ))
 
         return listOf(row1, row2, row3)
     }

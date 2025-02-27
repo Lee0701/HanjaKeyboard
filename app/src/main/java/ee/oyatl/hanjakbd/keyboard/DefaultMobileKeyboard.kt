@@ -12,9 +12,10 @@ class DefaultMobileKeyboard(
     private val shiftState: Keyboard.ShiftState
 ): DefaultKeyboard(listener) {
     override fun buildRows(context: Context): List<KbdRowBinding> {
-        val row1 = buildRow(context, rows[0])
-        val row2 = buildRow(context, rows[1])
-        val row3 = buildRow(context, rows[2])
+        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
+        val row1 = buildRow(context, rows[0], height)
+        val row2 = buildRow(context, rows[1], height)
+        val row3 = buildRow(context, rows[2], height)
 
         row2.root.addView(buildSpacer(context, 0.5f), 0)
         row2.root.addView(buildSpacer(context, 0.5f))

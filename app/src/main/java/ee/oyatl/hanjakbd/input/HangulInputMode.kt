@@ -36,7 +36,7 @@ class HangulInputMode(
         hanjaDict = DiskDictionary(context.resources.openRawResource(R.raw.hanja))
         hangulDict = DiskDictionary(context.resources.openRawResource(R.raw.hangul))
 
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
+        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_number_height)
         candidateView = CandidateView(context, null)
         candidateView.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,

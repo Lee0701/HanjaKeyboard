@@ -28,10 +28,9 @@ abstract class DefaultKeyboard(
         return keyboard.root
     }
 
-    protected fun buildRow(context: Context, chars: String): KbdRowBinding {
+    protected fun buildRow(context: Context, chars: String, height: Int): KbdRowBinding {
         val inflater = LayoutInflater.from(context)
         val row = KbdRowBinding.inflate(inflater)
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         chars.forEach { char ->
             val key = KbdKeyBinding.inflate(inflater)
             key.label.text = char.toString()

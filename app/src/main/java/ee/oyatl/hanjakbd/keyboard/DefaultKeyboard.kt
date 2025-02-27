@@ -2,11 +2,14 @@ package ee.oyatl.hanjakbd.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.databinding.KbdKeyBinding
 import ee.oyatl.hanjakbd.databinding.KbdKeyboardBinding
@@ -49,26 +52,10 @@ abstract class DefaultKeyboard(
         return spacer
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     protected fun buildSpecialKey(
         context: Context,
-        @DrawableRes icon: Int,
-        width: Float,
-        onClick: () -> Unit
-    ): View {
-        val inflater = LayoutInflater.from(context)
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
-        val key = KbdKeyBinding.inflate(inflater)
-        key.icon.setImageResource(icon)
-        key.root.setOnClickListener { onClick() }
-        key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
-            weight = width
-        }
-        return key.root
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    protected fun buildDownUpKey(
-        context: Context,
+        @ColorRes bkg: Int,
         @DrawableRes icon: Int,
         width: Float,
         onTouch: (Boolean) -> Unit
@@ -76,6 +63,7 @@ abstract class DefaultKeyboard(
         val inflater = LayoutInflater.from(context)
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         val key = KbdKeyBinding.inflate(inflater)
+        key.bkg.imageTintList = ContextCompat.getColorStateList(context, bkg)
         key.icon.setImageResource(icon)
         key.root.setOnTouchListener { view, event ->
             when(event.actionMasked) {

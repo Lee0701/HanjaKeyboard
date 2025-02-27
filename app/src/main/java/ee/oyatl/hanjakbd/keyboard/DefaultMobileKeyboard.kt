@@ -25,8 +25,9 @@ class DefaultMobileKeyboard(
             Keyboard.ShiftState.Locked -> R.drawable.baseline_shift_lock_fill_24
         }
 
-        row3.root.addView(buildDownUpKey(
+        row3.root.addView(buildSpecialKey(
             context,
+            R.color.kbd_key_mod_bkg,
             icon,
             1.5f
         ) { pressed -> listener.onShift(pressed) }, 0)
@@ -36,7 +37,12 @@ class DefaultMobileKeyboard(
             listener.onSpecial(Keyboard.SpecialKey.Delete)
             handler.postDelayed({ repeat() }, 50)
         }
-        val onDelete = { pressed: Boolean ->
+        row3.root.addView(buildSpecialKey(
+            context,
+            R.color.kbd_key_mod_bkg,
+            R.drawable.baseline_backspace_24,
+            1.5f
+        ) { pressed ->
             if(pressed) {
                 listener.onSpecial(Keyboard.SpecialKey.Delete)
                 handler.postDelayed({ repeat() }, 500)
@@ -44,13 +50,7 @@ class DefaultMobileKeyboard(
                 handler.removeCallbacksAndMessages(null)
             }
             Unit
-        }
-        row3.root.addView(buildDownUpKey(
-            context,
-            R.drawable.baseline_backspace_24,
-            1.5f,
-            onDelete
-        ))
+        })
 
         return listOf(row1, row2, row3)
     }

@@ -11,4 +11,7 @@ object LayoutQwerty {
         "ASDFGHJKL",
         "ZXCVBNM"
     )
+
+    const val NUMBER_ROW_LOWER: String = "1234567890"
+    const val NUMBER_ROW_UPPER: String = "!@#$%^&*()"
 }

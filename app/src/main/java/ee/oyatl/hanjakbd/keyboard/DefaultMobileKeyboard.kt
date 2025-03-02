@@ -17,8 +17,11 @@ class DefaultMobileKeyboard(
         val row2 = buildRow(context, rows[1], height)
         val row3 = buildRow(context, rows[2], height)
 
-        row2.root.addView(buildSpacer(context, 0.5f), 0)
-        row2.root.addView(buildSpacer(context, 0.5f))
+        if(rows[1].length != 10) {
+            val space = (10 - rows[1].length) / 2f
+            row2.root.addView(buildSpacer(context, space), 0)
+            row2.root.addView(buildSpacer(context, space))
+        }
 
         val icon = when(shiftState) {
             Keyboard.ShiftState.Unpressed -> R.drawable.baseline_shift_24

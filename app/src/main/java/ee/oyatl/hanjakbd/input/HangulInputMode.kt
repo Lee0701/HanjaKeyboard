@@ -54,6 +54,8 @@ class HangulInputMode(
         if(candidates.isNotEmpty()) {
             candidates = listOf()
             updateCandidates()
+            listener.onCommit(wordComposer.word)
+            reset()
         }
         val commit = normalizeOutput(hangulComposer.onChar(char))
         val compose = normalizeOutput(hangulComposer.composing.orEmpty())

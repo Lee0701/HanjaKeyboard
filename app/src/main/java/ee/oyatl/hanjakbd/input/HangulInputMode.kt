@@ -18,8 +18,9 @@ class HangulInputMode(
     override val listener: InputMode.Listener,
     normalLayout: List<String>,
     shiftedLayout: List<String>,
-    combinationTable: Map<Pair<Char, Char>, Char>
-): SoftInputMode(normalLayout, shiftedLayout) {
+    combinationTable: Map<Pair<Char, Char>, Char>,
+    autoReleaseShift: Boolean = true
+): SoftInputMode(normalLayout, shiftedLayout, autoReleaseShift) {
     private val hangulComposer = HangulComposer(combinationTable)
     private val wordComposer = WordComposer()
 

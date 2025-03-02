@@ -11,7 +11,8 @@ import java.util.concurrent.locks.Lock
 
 abstract class SoftInputMode(
     private val normalLayout: List<String>,
-    private val shiftedLayout: List<String>
+    private val shiftedLayout: List<String>,
+    private val autoReleaseShift: Boolean = true
 ): InputMode {
     protected var shiftState: Keyboard.ShiftState = Keyboard.ShiftState.Unpressed
     private var shiftPressing: Boolean = false
@@ -56,9 +57,13 @@ abstract class SoftInputMode(
                 shiftState = Keyboard.ShiftState.Pressed
             }
             Keyboard.ShiftState.Pressed -> {
-                val diff = System.currentTimeMillis() - shiftTime
-                if(diff < 300) shiftState = Keyboard.ShiftState.Locked
-                else shiftState = Keyboard.ShiftState.Unpressed
+                if(autoReleaseShift) {
+                    val diff = System.currentTimeMillis() - shiftTime
+                    if(diff < 300) shiftState = Keyboard.ShiftState.Locked
+                    else shiftState = Keyboard.ShiftState.Unpressed
+                } else {
+                    shiftState = Keyboard.ShiftState.Unpressed
+                }
             }
             Keyboard.ShiftState.Locked -> {
                 shiftState = Keyboard.ShiftState.Unpressed
@@ -90,6 +95,7 @@ abstract class SoftInputMode(
     }
 
     protected fun autoReleaseShift() {
+        if(!autoReleaseShift) return
         if(shiftState == Keyboard.ShiftState.Pressed) {
             if(!shiftPressing) {
                 shiftState = Keyboard.ShiftState.Unpressed

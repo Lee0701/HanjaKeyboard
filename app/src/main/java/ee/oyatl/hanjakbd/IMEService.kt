@@ -21,7 +21,7 @@ class IMEService: InputMethodService(), InputMode.Listener {
     init {
         val qwerty = AlphabetInputMode(this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
         val hangul = HangulInputMode(this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
-        val symbols = AlphabetInputMode(this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER)
+        val symbols = AlphabetInputMode(this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
         this.inputModes = listOf(
             listOf(qwerty, symbols),
             listOf(hangul, symbols)

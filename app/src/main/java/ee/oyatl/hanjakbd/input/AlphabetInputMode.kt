@@ -5,8 +5,10 @@ import ee.oyatl.hanjakbd.keyboard.Keyboard
 class AlphabetInputMode(
     override val listener: InputMode.Listener,
     normalLayout: List<String>,
-    shiftedLayout: List<String>
-): SoftInputMode(normalLayout, shiftedLayout) {
+    shiftedLayout: List<String>,
+    autoReleaseShift: Boolean = true
+): SoftInputMode(normalLayout, shiftedLayout, autoReleaseShift) {
+
     override fun onChar(char: Char) {
         listener.onCommit(char.toString())
         autoReleaseShift()

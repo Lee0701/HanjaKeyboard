@@ -33,5 +33,6 @@ class AlphabetInputMode(
 
     private fun onDelete() {
         listener.onDelete(1, 0)
+        listener.onCompose("")
     }
 }

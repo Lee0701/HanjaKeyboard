@@ -2,7 +2,6 @@ package ee.oyatl.hanjakbd.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View

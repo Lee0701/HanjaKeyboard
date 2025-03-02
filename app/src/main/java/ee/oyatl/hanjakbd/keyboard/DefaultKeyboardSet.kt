@@ -2,7 +2,6 @@ package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import ee.oyatl.hanjakbd.layout.LayoutQwerty
 
@@ -11,60 +10,38 @@ class DefaultKeyboardSet(
     private val normalLayout: List<String>,
     private val shiftedLayout: List<String>
 ): KeyboardSet {
-    private lateinit var mainKeyboardView: LinearLayout
-    private lateinit var normalKeyboardView: View
-    private lateinit var shiftedKeyboardView: View
-    private lateinit var shiftLockedKeyboardView: View
-    private lateinit var normalNumberRowKeyboardView: View
-    private lateinit var shiftedNumberRowKeyboardView: View
+    private lateinit var keyboardView: LinearLayout
+    private lateinit var mainKeyboardSwitcher: ShiftKeyboardSwitcher
+    private lateinit var numberKeyboardSwitcher: ShiftKeyboardSwitcher
 
     override fun initView(context: Context): View {
-        mainKeyboardView = LinearLayout(context)
-        mainKeyboardView.orientation = LinearLayout.VERTICAL
+        keyboardView = LinearLayout(context)
+        keyboardView.orientation = LinearLayout.VERTICAL
         run {
-            val switcherView = FrameLayout(context)
-            normalNumberRowKeyboardView = DefaultNumberRowKeyboard(listener, LayoutQwerty.NUMBER_ROW_LOWER).createView(context)
-            shiftedNumberRowKeyboardView = DefaultNumberRowKeyboard(listener, LayoutQwerty.NUMBER_ROW_UPPER).createView(context)
-            switcherView.addView(normalNumberRowKeyboardView)
-            switcherView.addView(shiftedNumberRowKeyboardView)
-            mainKeyboardView.addView(switcherView)
+            val normal = DefaultNumberRowKeyboard(listener, LayoutQwerty.NUMBER_ROW_LOWER).createView(context)
+            val shifted = DefaultNumberRowKeyboard(listener, LayoutQwerty.NUMBER_ROW_UPPER).createView(context)
+            numberKeyboardSwitcher = ShiftKeyboardSwitcher(context, normal, shifted, normal)
+            keyboardView.addView(numberKeyboardSwitcher.view)
         }
         run {
-            val switcherView = FrameLayout(context)
-            normalKeyboardView = DefaultMobileKeyboard(listener, normalLayout, Keyboard.ShiftState.Unpressed).createView(context)
-            shiftedKeyboardView = DefaultMobileKeyboard(listener, shiftedLayout, Keyboard.ShiftState.Pressed).createView(context)
-            shiftLockedKeyboardView = DefaultMobileKeyboard(listener, shiftedLayout, Keyboard.ShiftState.Locked).createView(context)
-            switcherView.addView(normalKeyboardView)
-            switcherView.addView(shiftedKeyboardView)
-            switcherView.addView(shiftLockedKeyboardView)
-            mainKeyboardView.addView(switcherView)
+            val normal = DefaultMobileKeyboard(listener, normalLayout, Keyboard.ShiftState.Unpressed).createView(context)
+            val shifted = DefaultMobileKeyboard(listener, shiftedLayout, Keyboard.ShiftState.Pressed).createView(context)
+            val locked = DefaultMobileKeyboard(listener, shiftedLayout, Keyboard.ShiftState.Locked).createView(context)
+            mainKeyboardSwitcher = ShiftKeyboardSwitcher(context, normal, shifted, locked)
+            keyboardView.addView(mainKeyboardSwitcher.view)
         }
-
         run {
             val bottomRowKeyboardView = DefaultBottomRowKeyboard(listener).createView(context)
-            mainKeyboardView.addView(bottomRowKeyboardView)
+            keyboardView.addView(bottomRowKeyboardView)
         }
-
-        return mainKeyboardView
+        return keyboardView
     }
 
     override fun getView(shiftState: Keyboard.ShiftState, candidates: Boolean): View {
-        when(shiftState) {
-            Keyboard.ShiftState.Unpressed -> {
-                normalKeyboardView.bringToFront()
-                normalNumberRowKeyboardView.bringToFront()
-            }
-            Keyboard.ShiftState.Pressed -> {
-                shiftedKeyboardView.bringToFront()
-                shiftedNumberRowKeyboardView.bringToFront()
-            }
-            Keyboard.ShiftState.Locked -> {
-                shiftLockedKeyboardView.bringToFront()
-                normalNumberRowKeyboardView.bringToFront()
-            }
-        }
-        if(candidates) normalNumberRowKeyboardView.visibility = View.GONE
-        else normalNumberRowKeyboardView.visibility = View.VISIBLE
-        return mainKeyboardView
+        mainKeyboardSwitcher.switch(shiftState)
+        numberKeyboardSwitcher.switch(shiftState)
+        if(candidates) numberKeyboardSwitcher.view.visibility = View.GONE
+        else numberKeyboardSwitcher.view.visibility = View.VISIBLE
+        return keyboardView
     }
 }

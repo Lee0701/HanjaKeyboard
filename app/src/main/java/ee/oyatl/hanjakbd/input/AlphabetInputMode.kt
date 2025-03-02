@@ -1,14 +1,12 @@
 package ee.oyatl.hanjakbd.input
 
 import ee.oyatl.hanjakbd.keyboard.Keyboard
-import ee.oyatl.hanjakbd.layout.LayoutQwerty
 
 class AlphabetInputMode(
-    override val listener: InputMode.Listener
-): SoftInputMode(
-    LayoutQwerty.ROWS_LOWER,
-    LayoutQwerty.ROWS_UPPER
-) {
+    override val listener: InputMode.Listener,
+    normalLayout: List<String>,
+    shiftedLayout: List<String>
+): SoftInputMode(normalLayout, shiftedLayout) {
     override fun onChar(char: Char) {
         listener.onCommit(char.toString())
         autoReleaseShift()

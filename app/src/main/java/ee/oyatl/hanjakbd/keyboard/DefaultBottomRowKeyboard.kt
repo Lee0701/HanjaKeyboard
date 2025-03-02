@@ -10,7 +10,13 @@ class DefaultBottomRowKeyboard(
     override fun buildRows(context: Context): List<KbdRowBinding> {
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
         val row = buildRow(context, "", height)
-        row.root.addView(buildSpacer(context, 2.5f))
+        row.root.addView(buildSpecialKey(
+            context,
+            R.color.kbd_key_mod_bkg,
+            R.drawable.baseline_alternate_email_24,
+            1.5f) { pressed -> if(pressed) listener.onSpecial(Keyboard.SpecialKey.Symbols) }
+        )
+        row.root.addView(buildKey(context, ',', height).root)
         row.root.addView(buildSpecialKey(
             context,
             R.color.kbd_key_mod_bkg,
@@ -22,7 +28,13 @@ class DefaultBottomRowKeyboard(
             R.drawable.baseline_space_bar_24,
             4.0f
         ) { pressed -> if(pressed) listener.onSpecial(Keyboard.SpecialKey.Space) })
-        row.root.addView(buildSpacer(context, 2.5f))
+        row.root.addView(buildKey(context, '.', height).root)
+        row.root.addView(buildSpecialKey(
+            context,
+            R.color.kbd_key_mod_bkg,
+            R.drawable.baseline_keyboard_return_24,
+            1.5f
+        ) { pressed -> if(pressed) listener.onSpecial(Keyboard.SpecialKey.Return) })
         return listOf(row)
     }
 }

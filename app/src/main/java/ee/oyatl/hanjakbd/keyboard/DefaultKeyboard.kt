@@ -31,15 +31,21 @@ abstract class DefaultKeyboard(
         val inflater = LayoutInflater.from(context)
         val row = KbdRowBinding.inflate(inflater)
         chars.forEach { char ->
-            val key = KbdKeyBinding.inflate(inflater)
-            key.label.text = char.toString()
-            key.root.setOnClickListener { listener.onChar(char) }
-            key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
-                weight = 1.0f
-            }
+            val key = buildKey(context, char, height)
             row.root.addView(key.root)
         }
         return row
+    }
+
+    protected fun buildKey(context: Context, char: Char, height: Int): KbdKeyBinding {
+        val inflater = LayoutInflater.from(context)
+        val key = KbdKeyBinding.inflate(inflater)
+        key.label.text = char.toString()
+        key.root.setOnClickListener { listener.onChar(char) }
+        key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
+            weight = 1.0f
+        }
+        return key
     }
 
     protected fun buildSpacer(context: Context, width: Float): View {

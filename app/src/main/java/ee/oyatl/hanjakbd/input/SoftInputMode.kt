@@ -37,6 +37,7 @@ abstract class SoftInputMode(
     override fun onSpecial(type: Keyboard.SpecialKey) {
         when(type) {
             Keyboard.SpecialKey.Language -> onLanguage()
+            Keyboard.SpecialKey.Symbols -> onSymbols()
             else -> return
         }
     }
@@ -82,6 +83,10 @@ abstract class SoftInputMode(
 
     private fun onLanguage() {
         listener.onSwitch(SwitchType.NextInputMode)
+    }
+
+    private fun onSymbols() {
+        listener.onSwitch(SwitchType.ToggleSymbolMode)
     }
 
     protected fun autoReleaseShift() {

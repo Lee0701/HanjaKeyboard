@@ -6,23 +6,34 @@ import android.view.inputmethod.EditorInfo
 import ee.oyatl.hanjakbd.input.AlphabetInputMode
 import ee.oyatl.hanjakbd.input.HangulInputMode
 import ee.oyatl.hanjakbd.input.InputMode
+import ee.oyatl.hanjakbd.layout.Layout2Set
+import ee.oyatl.hanjakbd.layout.LayoutQwerty
+import ee.oyatl.hanjakbd.layout.LayoutSymbol
 
 class IMEService: InputMethodService(), InputMode.Listener {
 
-    private val inputModes: List<InputMode> = listOf(
-        AlphabetInputMode(this),
-        HangulInputMode(this)
-    )
+    private val inputModes: List<List<InputMode>>
 
-    private var currentInputModeIndex: Int = 0
-    private val currentInputMode: InputMode get() = inputModes[currentInputModeIndex]
+    private var inputModeIndex: Int = 0
+    private var inputSubModeIndex: Int = 0
+    private val currentInputMode: InputMode get() = inputModes[inputModeIndex][inputSubModeIndex]
+
+    init {
+        val qwerty = AlphabetInputMode(this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
+        val hangul = HangulInputMode(this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
+        val symbols = AlphabetInputMode(this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER)
+        this.inputModes = listOf(
+            listOf(qwerty, symbols),
+            listOf(hangul, symbols)
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
     }
 
     override fun onCreateInputView(): View {
-        inputModes.forEach { it.initView(this) }
+        inputModes.flatten().toSet().forEach { it.initView(this) }
         return currentInputMode.getView()
     }
 
@@ -53,8 +64,17 @@ class IMEService: InputMethodService(), InputMode.Listener {
     }
 
     override fun onSwitch(type: InputMode.SwitchType) {
-        currentInputModeIndex += 1
-        if(currentInputModeIndex !in inputModes.indices) currentInputModeIndex = 0
+        when(type) {
+            InputMode.SwitchType.NextInputMode -> {
+                inputSubModeIndex = 0
+                inputModeIndex += 1
+                if(inputModeIndex !in inputModes.indices) inputModeIndex = 0
+            }
+            InputMode.SwitchType.ToggleSymbolMode -> {
+                inputSubModeIndex += 1
+                if(inputSubModeIndex !in inputModes[inputModeIndex].indices) inputSubModeIndex = 0
+            }
+        }
         onReset()
     }
 

@@ -5,23 +5,22 @@ import android.view.View
 import android.view.ViewGroup
 import ee.oyatl.hanjakbd.Candidate
 import ee.oyatl.hanjakbd.CandidateView
-import ee.oyatl.hanjakbd.dictionary.DiskDictionary
 import ee.oyatl.hanjakbd.Hangul
 import ee.oyatl.hanjakbd.HangulComposer
-import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
+import ee.oyatl.hanjakbd.dictionary.DiskDictionary
 import ee.oyatl.hanjakbd.keyboard.Keyboard
 import java.text.Normalizer
 import kotlin.math.log2
 
 class HangulInputMode(
-    override val listener: InputMode.Listener
-): SoftInputMode(
-    Layout2Set.ROWS_LOWER,
-    Layout2Set.ROWS_UPPER
-) {
-    private val hangulComposer = HangulComposer(Layout2Set.COMBINATION_TABLE)
+    override val listener: InputMode.Listener,
+    normalLayout: List<String>,
+    shiftedLayout: List<String>,
+    combinationTable: Map<Pair<Char, Char>, Char>
+): SoftInputMode(normalLayout, shiftedLayout) {
+    private val hangulComposer = HangulComposer(combinationTable)
     private val wordComposer = WordComposer()
 
     private lateinit var candidateView: CandidateView
@@ -95,7 +94,7 @@ class HangulInputMode(
             listener.onCommit("\n")
             reset()
         } else {
-            listener.onCommit(wordComposer.word + " ")
+            listener.onCommit(wordComposer.word)
             candidates = emptyList()
             updateCandidates()
             reset()

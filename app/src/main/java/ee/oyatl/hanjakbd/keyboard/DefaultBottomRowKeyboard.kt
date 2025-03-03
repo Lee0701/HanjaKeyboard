@@ -31,7 +31,7 @@ class DefaultBottomRowKeyboard(
         row.root.addView(buildKey(context, '.', height).root)
         row.root.addView(buildSpecialKey(
             context,
-            R.color.kbd_key_mod_bkg,
+            R.color.kbd_key_return_bkg,
             R.drawable.baseline_keyboard_return_24,
             1.5f
         ) { pressed -> if(pressed) listener.onSpecial(Keyboard.SpecialKey.Return) })

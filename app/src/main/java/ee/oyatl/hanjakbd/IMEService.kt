@@ -39,6 +39,7 @@ class IMEService: InputMethodService(), InputMode.Listener {
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
+        currentInputMode.reset()
         onReset()
     }
 
@@ -64,6 +65,8 @@ class IMEService: InputMethodService(), InputMode.Listener {
     }
 
     override fun onSwitch(type: InputMode.SwitchType) {
+        currentInputConnection?.finishComposingText()
+        currentInputMode.reset()
         when(type) {
             InputMode.SwitchType.NextInputMode -> {
                 inputSubModeIndex = 0

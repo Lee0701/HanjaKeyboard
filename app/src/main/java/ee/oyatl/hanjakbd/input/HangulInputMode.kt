@@ -52,8 +52,6 @@ class HangulInputMode(
 
     override fun onChar(char: Char) {
         if(candidates.isNotEmpty()) {
-            candidates = listOf()
-            updateCandidates()
             listener.onCommit(wordComposer.word)
             reset()
         }
@@ -84,8 +82,6 @@ class HangulInputMode(
             }
         } else {
             listener.onCommit(wordComposer.word + " ")
-            candidates = emptyList()
-            updateCandidates()
             reset()
         }
     }
@@ -93,13 +89,10 @@ class HangulInputMode(
     private fun onReturn() {
         if(candidates.isEmpty()) {
             listener.onCommit("\n")
-            reset()
         } else {
             listener.onCommit(wordComposer.word)
-            candidates = emptyList()
-            updateCandidates()
-            reset()
         }
+        reset()
     }
 
     private fun onDelete() {
@@ -118,6 +111,7 @@ class HangulInputMode(
 
     override fun reset() {
         super.reset()
+        clearCandidates()
         hangulComposer.reset()
         wordComposer.reset()
     }

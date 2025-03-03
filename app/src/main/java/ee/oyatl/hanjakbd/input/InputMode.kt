@@ -15,6 +15,7 @@ interface InputMode: Keyboard.Listener {
         fun onCompose(text: String)
         fun onCommit(text: String)
         fun onDelete(before: Int, after: Int)
+        fun onEditorAction()
         fun onSwitch(type: SwitchType)
         fun onReset()
     }

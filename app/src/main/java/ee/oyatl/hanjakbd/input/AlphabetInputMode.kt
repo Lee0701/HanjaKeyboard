@@ -28,7 +28,7 @@ class AlphabetInputMode(
     }
 
     private fun onReturn() {
-        listener.onCommit("\n")
+        listener.onEditorAction()
     }
 
     private fun onDelete() {

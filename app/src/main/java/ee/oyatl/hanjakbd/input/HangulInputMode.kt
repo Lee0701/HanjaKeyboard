@@ -88,7 +88,7 @@ class HangulInputMode(
 
     private fun onReturn() {
         if(candidates.isEmpty()) {
-            listener.onCommit("\n")
+            listener.onEditorAction()
         } else {
             listener.onCommit(wordComposer.word)
         }

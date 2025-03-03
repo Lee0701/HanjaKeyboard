@@ -64,6 +64,12 @@ class IMEService: InputMethodService(), InputMode.Listener {
         currentInputConnection?.deleteSurroundingText(before, after)
     }
 
+    override fun onEditorAction() {
+        val actionId = currentInputEditorInfo?.actionId
+        if(actionId != null) currentInputConnection?.performEditorAction(actionId)
+        else currentInputConnection?.commitText("\n", 1)
+    }
+
     override fun onSwitch(type: InputMode.SwitchType) {
         currentInputConnection?.finishComposingText()
         currentInputMode.reset()

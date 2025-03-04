@@ -4,7 +4,10 @@ import java.io.DataOutputStream
 import java.io.File
 
 fun main(args: Array<String>) {
-    val (inUnigrams, inBigrams, outVocab, outDict, outBigrams) = args
+    val (inDict, inUnigrams, inBigrams) = args.take(3)
+    val (outVocab, outDict, outBigrams) = args.drop(3)
+
+    println("load vocab...")
     val vocab = mutableListOf<DiskVocabDictionary.Entry>()
     File(inUnigrams).forEachLine { line ->
         val tokens = line.split('\t')
@@ -14,8 +17,26 @@ fun main(args: Array<String>) {
         }
     }
     val revVocab = vocab.mapIndexed { i, entry -> entry.result to i }.toMap()
+
+    println("load dict...")
+    val dict = mutableMapOf<String, String>()
+    File(inDict).forEachLine { line ->
+        val tokens = line.split('\t')
+        if(tokens.size == 2) {
+            val (hanja, hangul) = tokens
+            dict += hanja to hangul
+        }
+    }
+
+    println("generate unigrams...")
     val unigrams = IndexDictionary()
-    revVocab.forEach { (key, index) -> unigrams.insert(key, index) }
+    revVocab.forEach { (key, index) ->
+        val hangul = dict[key]
+        if(hangul != null) unigrams.insert(hangul, index)
+        else unigrams.insert(key, index)
+    }
+
+    println("generate bigrams...")
     val bigrams = IndexDictionary()
     File(inBigrams).forEachLine { line ->
         val tokens = line.split('\t')

@@ -24,12 +24,12 @@ class DiskIndexDictionary(input: InputStream) {
                 }
             }
         }
-        val children = data.getShort(p)
+        val children = data.getChar(p).code
         p += 2 + children*6
-        val entries = data.getShort(p)
+        val entries = data.getChar(p).code
         p += 2
         return (0 until entries).map {
-            val entry = data.getShort(p).toInt()
+            val entry = data.getChar(p).code
             p += 2
             entry
         }

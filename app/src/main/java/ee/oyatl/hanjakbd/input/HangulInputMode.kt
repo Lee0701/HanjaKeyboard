@@ -14,7 +14,6 @@ import ee.oyatl.hanjakbd.dictionary.DiskIndexDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskVocabDictionary
 import ee.oyatl.hanjakbd.keyboard.Keyboard
 import java.text.Normalizer
-import kotlin.math.log2
 
 class HangulInputMode(
     override val listener: InputMode.Listener,
@@ -41,9 +40,6 @@ class HangulInputMode(
         vocabDict = DiskVocabDictionary(context.resources.openRawResource(R.raw.vocab))
         unigramsDict = DiskIndexDictionary((context.resources.openRawResource(R.raw.unigrams)))
         bigramsDict = DiskIndexDictionary(context.resources.openRawResource(R.raw.bigrams))
-
-        val key = listOf(unigramsDict.search("이")[0], unigramsDict.search("다")[0])
-        println(bigramsDict.search(key))
 
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_number_height)
         candidateView = CandidateView(context, null)
@@ -159,9 +155,29 @@ class HangulInputMode(
         val hanjaResult = (1 .. text.length).map { l ->
             hanjaDict.search(text.take(l))
                 .filter { it.result.length == l }
-                .map { Candidate(it.result, log2(it.frequency.toFloat()) * l) }
+                .map { Candidate(it.result, it.frequency.toFloat()) }
         }.flatten().sortedByDescending { it.score }
-        return hanjaResult
+        val bigramResult = (1 .. text.length).asSequence()
+            .map { l ->
+                val firsts = unigramsDict.search(text.take(l))
+                val seconds = (1 .. l + 1).flatMap { l2 ->
+                    unigramsDict.search(text.drop(l).take(l2))
+                }.take(10)
+                firsts.flatMap { first -> seconds.map { second -> listOf(first, second) } }
+            }
+            .flatten().map { it to bigramsDict.search(it) }
+            .filter { (_, value) -> value.isNotEmpty() }
+            .map { (key, value) -> key.map { vocabDict[it] } to value }
+            .map { (key, value) -> Candidate(
+                text = key.joinToString("") { it.result },
+                score = key.map { it.frequency }.reduce(Int::times) * value[0].toFloat()
+            ) }
+            .sortedByDescending { it.score }
+            .distinct()
+            .toList()
+        return (bigramResult + hanjaResult)
+            .sortedByDescending { it.score }
+            .sortedByDescending { it.text.length }
     }
 
     private fun normalizeOutput(text: String): String {

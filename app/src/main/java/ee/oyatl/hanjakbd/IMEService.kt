@@ -1,8 +1,12 @@
 package ee.oyatl.hanjakbd
 
 import android.inputmethodservice.InputMethodService
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.PopupWindow
+import ee.oyatl.hanjakbd.databinding.PopupDefinitionBinding
 import ee.oyatl.hanjakbd.input.AlphabetInputMode
 import ee.oyatl.hanjakbd.input.HangulInputMode
 import ee.oyatl.hanjakbd.input.InputMode
@@ -18,9 +22,41 @@ class IMEService: InputMethodService(), InputMode.Listener {
     private var inputSubModeIndex: Int = 0
     private val currentInputMode: InputMode get() = inputModes[inputModeIndex][inputSubModeIndex]
 
+    private var popupWindow: PopupWindow? = null
+
+    private val hangulModeListener: HangulInputMode.Listener = object: HangulInputMode.Listener {
+        override fun onDefinition(
+            hangul: String,
+            hanja: String,
+            definition: String
+        ) {
+            this@IMEService.popupWindow?.dismiss()
+            val inputView = currentInputMode.getView()
+            val height = resources.displayMetrics.heightPixels - inputView.height
+            val y = -resources.displayMetrics.heightPixels + inputView.height
+            val view = PopupDefinitionBinding.inflate(layoutInflater, null, false)
+            val popup = PopupWindow(
+                view.root,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                height,
+                false
+            )
+            popup.showAtLocation(inputView, Gravity.TOP, 0, y)
+            view.hanja.text = hanja
+            view.hangul.text = hangul
+            view.definition.text = definition.replace("\\n", "\n\n")
+            this@IMEService.popupWindow = popup
+        }
+
+        override fun onCloseDefinition() {
+            this@IMEService.popupWindow?.dismiss()
+            this@IMEService.popupWindow = null
+        }
+    }
+
     init {
         val qwerty = AlphabetInputMode(this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
-        val hangul = HangulInputMode(this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
+        val hangul = HangulInputMode(this, hangulModeListener, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
         val symbols = AlphabetInputMode(this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
         this.inputModes = listOf(
             listOf(qwerty, symbols),
@@ -90,4 +126,5 @@ class IMEService: InputMethodService(), InputMode.Listener {
     override fun onReset() {
         setInputView(currentInputMode.getView())
     }
+
 }

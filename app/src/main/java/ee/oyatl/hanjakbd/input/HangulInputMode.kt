@@ -17,6 +17,7 @@ import java.text.Normalizer
 
 class HangulInputMode(
     override val listener: InputMode.Listener,
+    val hangulListener: Listener,
     normalLayout: List<String>,
     shiftedLayout: List<String>,
     combinationTable: Map<Pair<Char, Char>, Char>,
@@ -45,7 +46,10 @@ class HangulInputMode(
             ViewGroup.LayoutParams.MATCH_PARENT,
             height
         )
-        adapter = CandidateView.Adapter { onItemClick(it) }
+        adapter = CandidateView.Adapter(
+            onItemClick = { onItemClick(it) },
+            onItemLongClick = { onItemLongClick(it) }
+        )
         candidateView.adapter = adapter
 
         val inputView = super.initView(context) as ViewGroup
@@ -127,6 +131,7 @@ class HangulInputMode(
     private fun updateCandidates() {
         adapter.submitList(candidates)
         updateInputView()
+        hangulListener.onCloseDefinition()
     }
 
     private fun onItemClick(candidate: Candidate) {
@@ -136,6 +141,13 @@ class HangulInputMode(
         if(wordComposer.word.isNotEmpty()) convertWordAndDisplayCandidates()
         else clearCandidates()
         hangulComposer.reset()
+    }
+
+    private fun onItemLongClick(candidate: Candidate) {
+        if(candidate.index < 0) return
+        val (hangul, hanja) = hanjaDict.get(candidate.index)
+        val definition = definitionDict.get(candidate.index)
+        hangulListener.onDefinition(hangul, hanja, definition)
     }
 
     private fun convertWordAndDisplayCandidates() {
@@ -165,5 +177,10 @@ class HangulInputMode(
         val nfc = Normalizer.normalize(text, Normalizer.Form.NFC)
         val compat = nfc.map { Hangul.stdToCompat(it) }.joinToString("")
         return compat
+    }
+
+    interface Listener {
+        fun onDefinition(hangul: String, hanja: String, definition: String)
+        fun onCloseDefinition()
     }
 }

@@ -9,7 +9,8 @@ import ee.oyatl.hanjakbd.Hangul
 import ee.oyatl.hanjakbd.HangulComposer
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
-import ee.oyatl.hanjakbd.dictionary.DiskDictionary
+import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
+import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
 import ee.oyatl.hanjakbd.keyboard.Keyboard
 import java.text.Normalizer
 import kotlin.math.log2
@@ -26,15 +27,15 @@ class HangulInputMode(
 
     private lateinit var candidateView: CandidateView
 
-    private lateinit var hanjaDict: DiskDictionary
-    private lateinit var hangulDict: DiskDictionary
+    private lateinit var indexDict: DiskTrieDictionary
+    private lateinit var hanjaDict: DiskHanjaDictionary
     private lateinit var adapter: CandidateView.Adapter
 
     private var candidates: List<Candidate> = listOf()
 
     override fun initView(context: Context): View {
-        hanjaDict = DiskDictionary(context.resources.openRawResource(R.raw.hanja))
-        hangulDict = DiskDictionary(context.resources.openRawResource(R.raw.hangul))
+        indexDict = DiskTrieDictionary(context.resources.openRawResource(R.raw.hanja_index))
+        hanjaDict = DiskHanjaDictionary(context.resources.openRawResource(R.raw.hanja_content))
 
         val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_number_height)
         candidateView = CandidateView(context, null)
@@ -147,14 +148,15 @@ class HangulInputMode(
     }
 
     private fun convert(text: String): List<Candidate> {
-        val hangulResult = hangulDict.search(text.take(1))
-            .map { Candidate(it.result, it.frequency.toFloat()) }
         val hanjaResult = (1 .. text.length).map { l ->
-            hanjaDict.search(text.take(l))
-                .filter { it.result.length == l }
-                .map { Candidate(it.result, log2(it.frequency.toFloat()) * l) }
-        }.flatten().sortedByDescending { it.score }
-        return hangulResult + hanjaResult
+            indexDict.search(text.take(l))
+                .map { hanjaDict.get(it) }
+                .filter { it.hanja.length == l }
+                .map { Candidate(it.hanja, it.frequency.toFloat()) }
+        }.flatten()
+            .sortedByDescending { it.score }
+            .sortedByDescending { it.text.length }
+        return hanjaResult
     }
 
     private fun normalizeOutput(text: String): String {

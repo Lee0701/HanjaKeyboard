@@ -147,18 +147,14 @@ class HangulInputMode(
     }
 
     private fun convert(text: String): List<Candidate> {
-        val hangulResult = (1 .. text.length).reversed().map { l ->
-            hangulDict.search(text.take(l)).filter { it.result.length == l }
-        }.flatten().take(1)
-            .map { Candidate(it.result, it.frequency.toFloat()) }
-        val hangulSingleResult = hangulDict.search(text.take(1))
+        val hangulResult = hangulDict.search(text.take(1))
             .map { Candidate(it.result, it.frequency.toFloat()) }
         val hanjaResult = (1 .. text.length).map { l ->
             hanjaDict.search(text.take(l))
                 .filter { it.result.length == l }
                 .map { Candidate(it.result, log2(it.frequency.toFloat()) * l) }
         }.flatten().sortedByDescending { it.score }
-        return (hangulResult + hangulSingleResult).distinct() + hanjaResult
+        return hangulResult + hanjaResult
     }
 
     private fun normalizeOutput(text: String): String {

@@ -64,7 +64,7 @@ class HangulInputMode(
         }
         val commit = normalizeOutput(hangulComposer.onChar(char))
         val compose = normalizeOutput(hangulComposer.composing.orEmpty())
-        if(commit.isNotEmpty()) wordComposer.commit(commit)
+        if(commit.isNotEmpty()) commit.forEach { wordComposer.commit(it.toString()) }
         wordComposer.compose(compose)
         listener.onCompose(wordComposer.word)
         autoReleaseShift()
@@ -152,7 +152,6 @@ class HangulInputMode(
 
     private fun convertWordAndDisplayCandidates() {
         candidates = convert(wordComposer.word)
-        if(candidates.isEmpty()) candidates = listOf(Candidate(-1, wordComposer.word, 0f))
         updateCandidates()
     }
 
@@ -162,6 +161,12 @@ class HangulInputMode(
     }
 
     private fun convert(text: String): List<Candidate> {
+        if(text.isNotEmpty() && Hangul.type(text[0]) == Hangul.Type.NonHangul) {
+            val subtext = (1 .. text.length).reversed()
+                .map { l -> text.take(l) }
+                .find { t -> t.all { Hangul.type(it) == Hangul.Type.NonHangul } }
+            return nonHangulConvert(subtext ?: return emptyList())
+        }
         val hanjaResult = (1 .. text.length).map { l ->
             indexDict.search(text.take(l))
                 .map { it to hanjaDict.get(it) }
@@ -170,7 +175,18 @@ class HangulInputMode(
         }.flatten()
             .sortedByDescending { it.score }
             .sortedByDescending { it.text.length }
-        return hanjaResult
+        return getDefaultCandidates(text) + hanjaResult
+    }
+
+    private fun nonHangulConvert(text: String): List<Candidate> {
+        return listOf(Candidate(-1, text, 0f))
+    }
+
+    private fun getDefaultCandidates(text: String): List<Candidate> {
+        return listOf(
+            Candidate(-1, wordComposer.word, 0f),
+            Candidate(-1, wordComposer.word.firstOrNull()?.toString().orEmpty(), 0f)
+        ).filter { it.text.isNotEmpty() }.distinct()
     }
 
     private fun normalizeOutput(text: String): String {

@@ -4,6 +4,7 @@ import android.graphics.Rect
 import android.graphics.text.LineBreaker
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.text.Html
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -52,7 +53,7 @@ class IMEService: InputMethodService(), InputMode.Listener {
             popup.showAtLocation(inputView, Gravity.TOP, 0, y)
             view.hanja.text = hanja
             view.hangul.text = hangul
-            view.definition.text = definition.replace("\\n", "\n\n")
+            view.definition.text = Html.fromHtml(definition)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_CHARACTER
             }

@@ -7,6 +7,7 @@ import ee.oyatl.hanjakbd.Candidate
 import ee.oyatl.hanjakbd.CandidateView
 import ee.oyatl.hanjakbd.Hangul
 import ee.oyatl.hanjakbd.HangulComposer
+import ee.oyatl.hanjakbd.NonHangulConverter
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
 import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
@@ -179,7 +180,7 @@ class HangulInputMode(
     }
 
     private fun nonHangulConvert(text: String): List<Candidate> {
-        return listOf(Candidate(-1, text, 0f))
+        return NonHangulConverter.convert(text)
     }
 
     private fun getDefaultCandidates(text: String): List<Candidate> {

@@ -111,5 +111,6 @@ abstract class SoftInputMode(
     }
 
     override fun reset() {
+        shiftState = Keyboard.ShiftState.Unpressed
     }
 }

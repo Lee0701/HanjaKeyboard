@@ -137,7 +137,7 @@ class HangulInputMode(
 
     private fun onItemClick(candidate: Candidate) {
         listener.onCommit(candidate.text)
-        wordComposer.consume(candidate.text.length)
+        wordComposer.consume(candidate.length)
         listener.onCompose(wordComposer.word)
         if(wordComposer.word.isNotEmpty()) convertWordAndDisplayCandidates()
         else clearCandidates()

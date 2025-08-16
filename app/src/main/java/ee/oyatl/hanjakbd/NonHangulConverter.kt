@@ -33,7 +33,7 @@ object NonHangulConverter {
 
     fun convertCJKPunct(text: String): List<Candidate> {
         val result = mutableListOf<Candidate>()
-        if(text in punctTable) result += punctTable.getValue(text).map { Candidate(-1, it, 0f) }
+        if(text in punctTable) result += punctTable.getValue(text).map { Candidate(-1, it, 0f, text.length) }
         if(text.firstOrNull().toString() in punctTable) result += punctTable.getValue(text.firstOrNull().toString()).map { Candidate(-1, it, 0f) }
         return result
     }

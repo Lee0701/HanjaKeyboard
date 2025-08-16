@@ -1,6 +1,9 @@
 package ee.oyatl.hanjakbd
 
+import android.graphics.Rect
+import android.graphics.text.LineBreaker
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +25,11 @@ class IMEService: InputMethodService(), InputMode.Listener {
     private var inputSubModeIndex: Int = 0
     private val currentInputMode: InputMode get() = inputModes[inputModeIndex][inputSubModeIndex]
 
+    private val rect = Rect()
+    private val statusBarHeight: Int get() {
+        window.window?.decorView?.getWindowVisibleDisplayFrame(rect) ?: return 0
+        return rect.top
+    }
     private var popupWindow: PopupWindow? = null
 
     private val hangulModeListener: HangulInputMode.Listener = object: HangulInputMode.Listener {
@@ -32,7 +40,7 @@ class IMEService: InputMethodService(), InputMode.Listener {
         ) {
             this@IMEService.popupWindow?.dismiss()
             val inputView = currentInputMode.getView()
-            val height = resources.displayMetrics.heightPixels - inputView.height
+            val height = resources.displayMetrics.heightPixels - inputView.height - statusBarHeight
             val y = -resources.displayMetrics.heightPixels + inputView.height
             val view = PopupDefinitionBinding.inflate(layoutInflater, null, false)
             val popup = PopupWindow(
@@ -45,6 +53,9 @@ class IMEService: InputMethodService(), InputMode.Listener {
             view.hanja.text = hanja
             view.hangul.text = hangul
             view.definition.text = definition.replace("\\n", "\n\n")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_CHARACTER
+            }
             this@IMEService.popupWindow = popup
         }
 

@@ -1,8 +1,13 @@
 package ee.oyatl.hanjakbd.input
 
 import android.content.Context
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.recyclerview.widget.LinearSnapHelper
 import ee.oyatl.hanjakbd.Candidate
 import ee.oyatl.hanjakbd.CandidateView
 import ee.oyatl.hanjakbd.Hangul
@@ -10,24 +15,27 @@ import ee.oyatl.hanjakbd.HangulComposer
 import ee.oyatl.hanjakbd.NonHangulConverter
 import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
+import ee.oyatl.hanjakbd.databinding.CandidateViewBinding
 import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskStringDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
 import ee.oyatl.hanjakbd.keyboard.Keyboard
+import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 import java.text.Normalizer
 
 class HangulInputMode(
+    config: KeyboardConfig,
     override val listener: InputMode.Listener,
     val hangulListener: Listener,
     normalLayout: List<String>,
     shiftedLayout: List<String>,
     combinationTable: Map<Pair<Char, Char>, Char>,
     autoReleaseShift: Boolean = true
-): SoftInputMode(normalLayout, shiftedLayout, autoReleaseShift) {
+): SoftInputMode(config, normalLayout, shiftedLayout, autoReleaseShift) {
     private val hangulComposer = HangulComposer(combinationTable)
     private val wordComposer = WordComposer()
 
-    private lateinit var candidateView: CandidateView
+    private lateinit var candidateView: CandidateViewBinding
 
     private lateinit var indexDict: DiskTrieDictionary
     private lateinit var hanjaDict: DiskHanjaDictionary
@@ -41,9 +49,14 @@ class HangulInputMode(
         hanjaDict = DiskHanjaDictionary(context.resources.openRawResource(R.raw.hanja_content))
         definitionDict = DiskStringDictionary(context.resources.openRawResource(R.raw.hanja_definition))
 
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_number_height)
-        candidateView = CandidateView(context, null)
-        candidateView.layoutParams = ViewGroup.LayoutParams(
+        val height = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            config.numberRowHeight.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
+        val layoutInflater = LayoutInflater.from(context)
+        candidateView = CandidateViewBinding.inflate(layoutInflater)
+        candidateView.root.layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             height
         )
@@ -51,10 +64,10 @@ class HangulInputMode(
             onItemClick = { onItemClick(it) },
             onItemLongClick = { onItemLongClick(it) }
         )
-        candidateView.adapter = adapter
+        candidateView.recyclerView.adapter = adapter
 
-        val inputView = super.initView(context) as ViewGroup
-        inputView.addView(candidateView, 0)
+        val inputView = super.initView(context) as LinearLayout
+        inputView.addView(candidateView.root, 0)
         return inputView
     }
 
@@ -126,7 +139,7 @@ class HangulInputMode(
 
     override fun updateInputView() {
         keyboardSet.getView(shiftState, candidates.isNotEmpty())
-        candidateView.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
+        candidateView.root.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun updateCandidates() {

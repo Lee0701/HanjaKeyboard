@@ -16,7 +16,6 @@ class CandidateView(
 ): RecyclerView(context, attributeSet) {
 
     init {
-        this.setBackgroundResource(R.color.kbd_keyboard_bkg)
         layoutManager = LinearLayoutManager(
             context,
             LinearLayoutManager.HORIZONTAL,

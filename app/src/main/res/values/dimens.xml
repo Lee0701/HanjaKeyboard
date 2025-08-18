@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="kbd_key_height">52dp</dimen>
-    <dimen name="kbd_key_number_height">42dp</dimen>
     <dimen name="kbd_key_radius">8dp</dimen>
     <dimen name="kbd_key_padding_x">2dp</dimen>
     <dimen name="kbd_key_padding_y">4dp</dimen>

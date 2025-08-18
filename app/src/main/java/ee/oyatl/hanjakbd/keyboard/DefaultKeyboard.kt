@@ -9,14 +9,13 @@ import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.databinding.KbdKeyBinding
 import ee.oyatl.hanjakbd.databinding.KbdKeyboardBinding
 import ee.oyatl.hanjakbd.databinding.KbdRowBinding
 
-abstract class DefaultKeyboard(
-    override val listener: Keyboard.Listener
-) : Keyboard {
+abstract class DefaultKeyboard : Keyboard {
+
+    abstract fun getKeyHeight(context: Context): Int
 
     abstract fun buildRows(context: Context): List<KbdRowBinding>
 
@@ -27,18 +26,19 @@ abstract class DefaultKeyboard(
         return keyboard.root
     }
 
-    protected fun buildRow(context: Context, chars: String, height: Int): KbdRowBinding {
+    protected fun buildRow(context: Context, chars: String): KbdRowBinding {
         val inflater = LayoutInflater.from(context)
         val row = KbdRowBinding.inflate(inflater)
         chars.forEach { char ->
-            val key = buildKey(context, char, height)
+            val key = buildKey(context, char)
             row.root.addView(key.root)
         }
         return row
     }
 
-    protected fun buildKey(context: Context, char: Char, height: Int): KbdKeyBinding {
+    protected fun buildKey(context: Context, char: Char): KbdKeyBinding {
         val inflater = LayoutInflater.from(context)
+        val height = getKeyHeight(context)
         val key = KbdKeyBinding.inflate(inflater)
         key.label.text = char.toString()
         key.root.setOnClickListener { listener.onChar(char) }
@@ -65,7 +65,7 @@ abstract class DefaultKeyboard(
         onTouch: (Boolean) -> Unit
     ): View {
         val inflater = LayoutInflater.from(context)
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_height)
+        val height = getKeyHeight(context)
         val key = KbdKeyBinding.inflate(inflater)
         key.bkg.imageTintList = ContextCompat.getColorStateList(context, bkg)
         key.icon.setImageResource(icon)

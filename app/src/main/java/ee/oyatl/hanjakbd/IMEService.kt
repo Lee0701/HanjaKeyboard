@@ -14,6 +14,7 @@ import ee.oyatl.hanjakbd.databinding.PopupDefinitionBinding
 import ee.oyatl.hanjakbd.input.AlphabetInputMode
 import ee.oyatl.hanjakbd.input.HangulInputMode
 import ee.oyatl.hanjakbd.input.InputMode
+import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.layout.LayoutQwerty
 import ee.oyatl.hanjakbd.layout.LayoutSymbol
@@ -54,8 +55,8 @@ class IMEService: InputMethodService(), InputMode.Listener {
             view.hanja.text = hanja
             view.hangul.text = hangul
             view.definition.text = Html.fromHtml(definition)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_CHARACTER
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
             }
             this@IMEService.popupWindow = popup
         }
@@ -67,9 +68,10 @@ class IMEService: InputMethodService(), InputMode.Listener {
     }
 
     init {
-        val qwerty = AlphabetInputMode(this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
-        val hangul = HangulInputMode(this, hangulModeListener, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
-        val symbols = AlphabetInputMode(this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
+        val keyboardConfig = KeyboardConfig()
+        val qwerty = AlphabetInputMode(keyboardConfig, this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
+        val hangul = HangulInputMode(keyboardConfig, this, hangulModeListener, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
+        val symbols = AlphabetInputMode(keyboardConfig, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
         this.inputModes = listOf(
             listOf(qwerty, symbols),
             listOf(hangul, symbols)

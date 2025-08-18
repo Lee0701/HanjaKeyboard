@@ -1,16 +1,24 @@
 package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
-import ee.oyatl.hanjakbd.R
+import android.util.TypedValue
 import ee.oyatl.hanjakbd.databinding.KbdRowBinding
 
 class DefaultNumberRowKeyboard(
-    listener: Keyboard.Listener,
+    override val config: KeyboardConfig,
+    override val listener: Keyboard.Listener,
     private val row: String
-): DefaultKeyboard(listener) {
+): DefaultKeyboard() {
+    override fun getKeyHeight(context: Context): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            config.numberRowHeight.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
+    }
+
     override fun buildRows(context: Context): List<KbdRowBinding> {
-        val height = context.resources.getDimensionPixelSize(R.dimen.kbd_key_number_height)
-        val row = buildRow(context, row, height)
+        val row = buildRow(context, row)
         return listOf(row)
     }
 }

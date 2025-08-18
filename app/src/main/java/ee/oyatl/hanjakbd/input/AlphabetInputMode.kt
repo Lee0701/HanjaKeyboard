@@ -1,13 +1,15 @@
 package ee.oyatl.hanjakbd.input
 
 import ee.oyatl.hanjakbd.keyboard.Keyboard
+import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 
 class AlphabetInputMode(
+    config: KeyboardConfig,
     override val listener: InputMode.Listener,
     normalLayout: List<String>,
     shiftedLayout: List<String>,
     autoReleaseShift: Boolean = true
-): SoftInputMode(normalLayout, shiftedLayout, autoReleaseShift) {
+): SoftInputMode(config, normalLayout, shiftedLayout, autoReleaseShift) {
 
     override fun onChar(char: Char) {
         listener.onCommit(char.toString())

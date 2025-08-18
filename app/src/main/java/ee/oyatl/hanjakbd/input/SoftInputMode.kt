@@ -6,10 +6,11 @@ import android.widget.LinearLayout
 import ee.oyatl.hanjakbd.input.InputMode.SwitchType
 import ee.oyatl.hanjakbd.keyboard.DefaultKeyboardSet
 import ee.oyatl.hanjakbd.keyboard.Keyboard
+import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 import ee.oyatl.hanjakbd.keyboard.KeyboardSet
-import java.util.concurrent.locks.Lock
 
 abstract class SoftInputMode(
+    val config: KeyboardConfig,
     private val normalLayout: List<String>,
     private val shiftedLayout: List<String>,
     private val autoReleaseShift: Boolean = true
@@ -22,7 +23,7 @@ abstract class SoftInputMode(
     protected lateinit var keyboardSet: KeyboardSet
 
     override fun initView(context: Context): View {
-        keyboardSet = DefaultKeyboardSet(this, normalLayout, shiftedLayout)
+        keyboardSet = DefaultKeyboardSet(config, this, normalLayout, shiftedLayout)
 
         inputView = LinearLayout(context)
         inputView.orientation = LinearLayout.VERTICAL

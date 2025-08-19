@@ -8,7 +8,8 @@ import ee.oyatl.hanjakbd.databinding.KbdRowBinding
 
 class DefaultBottomRowKeyboard(
     override val config: KeyboardConfig,
-    override val listener: Keyboard.Listener
+    override val listener: Keyboard.Listener,
+    val layout: String
 ): DefaultKeyboard() {
     override fun getKeyHeight(context: Context): Int {
         return TypedValue.applyDimension(
@@ -29,7 +30,7 @@ class DefaultBottomRowKeyboard(
             performFeedback(row.root, AudioManager.FX_KEYPRESS_STANDARD)
             listener.onSpecial(Keyboard.SpecialKey.Symbols)
         } })
-        row.root.addView(buildKey(context, ',').root)
+        row.root.addView(buildKey(context, layout[0]).root)
         row.root.addView(buildSpecialKey(
             context,
             R.color.kbd_key_mod_bkg,
@@ -48,7 +49,7 @@ class DefaultBottomRowKeyboard(
             performFeedback(row.root, AudioManager.FX_KEYPRESS_SPACEBAR)
             listener.onSpecial(Keyboard.SpecialKey.Space)
         } })
-        row.root.addView(buildKey(context, '.').root)
+        row.root.addView(buildKey(context, layout[1]).root)
         row.root.addView(buildSpecialKey(
             context,
             R.color.kbd_key_return_bkg,

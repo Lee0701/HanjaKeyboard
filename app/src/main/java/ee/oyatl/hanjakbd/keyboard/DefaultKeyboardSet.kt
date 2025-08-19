@@ -14,6 +14,7 @@ class DefaultKeyboardSet(
     private lateinit var keyboardView: LinearLayout
     private lateinit var mainKeyboardSwitcher: ShiftKeyboardSwitcher
     private lateinit var numberKeyboardSwitcher: ShiftKeyboardSwitcher
+    private lateinit var bottomKeyboardSwitcher: ShiftKeyboardSwitcher
 
     override fun initView(context: Context): View {
         keyboardView = LinearLayout(context)
@@ -32,8 +33,10 @@ class DefaultKeyboardSet(
             keyboardView.addView(mainKeyboardSwitcher.view)
         }
         run {
-            val bottomRowKeyboardView = DefaultBottomRowKeyboard(config, listener).createView(context)
-            keyboardView.addView(bottomRowKeyboardView)
+            val normal = DefaultBottomRowKeyboard(config, listener, ",.").createView(context)
+            val shifted = DefaultBottomRowKeyboard(config, listener, "<>").createView(context)
+            bottomKeyboardSwitcher = ShiftKeyboardSwitcher(context, normal, shifted, normal)
+            keyboardView.addView(bottomKeyboardSwitcher.view)
         }
         return keyboardView
     }
@@ -41,6 +44,7 @@ class DefaultKeyboardSet(
     override fun getView(shiftState: Keyboard.ShiftState, candidates: Boolean): View {
         mainKeyboardSwitcher.switch(shiftState)
         numberKeyboardSwitcher.switch(shiftState)
+        bottomKeyboardSwitcher.switch(shiftState)
         if(candidates) numberKeyboardSwitcher.view.visibility = View.GONE
         else numberKeyboardSwitcher.view.visibility = View.VISIBLE
         return keyboardView

@@ -11,17 +11,21 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.PopupWindow
 import ee.oyatl.hanjakbd.databinding.PopupDefinitionBinding
+import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
+import ee.oyatl.hanjakbd.dictionary.DiskStringDictionary
+import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
 import ee.oyatl.hanjakbd.input.AlphabetInputMode
 import ee.oyatl.hanjakbd.input.HangulInputMode
+import ee.oyatl.hanjakbd.input.HanjaDictionarySet
 import ee.oyatl.hanjakbd.input.InputMode
 import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 import ee.oyatl.hanjakbd.layout.Layout2Set
 import ee.oyatl.hanjakbd.layout.LayoutQwerty
 import ee.oyatl.hanjakbd.layout.LayoutSymbol
 
-class IMEService: InputMethodService(), InputMode.Listener {
+class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.Listener {
 
-    private val inputModes: List<List<InputMode>>
+    private var inputModes: List<List<InputMode>> = listOf()
 
     private var inputModeIndex: Int = 0
     private var inputSubModeIndex: Int = 0
@@ -34,52 +38,20 @@ class IMEService: InputMethodService(), InputMode.Listener {
     }
     private var popupWindow: PopupWindow? = null
 
-    private val hangulModeListener: HangulInputMode.Listener = object: HangulInputMode.Listener {
-        override fun onDefinition(
-            hangul: String,
-            hanja: String,
-            definition: String
-        ) {
-            this@IMEService.popupWindow?.dismiss()
-            val inputView = currentInputMode.getView()
-            val height = resources.displayMetrics.heightPixels - inputView.height - statusBarHeight
-            val y = -resources.displayMetrics.heightPixels + inputView.height
-            val view = PopupDefinitionBinding.inflate(layoutInflater, null, false)
-            val popup = PopupWindow(
-                view.root,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                height,
-                false
-            )
-            popup.showAtLocation(inputView, Gravity.TOP, 0, y)
-            view.hanja.text = hanja
-            view.hangul.text = hangul
-            view.definition.text = Html.fromHtml(definition)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
-            }
-            this@IMEService.popupWindow = popup
-        }
-
-        override fun onCloseDefinition() {
-            this@IMEService.popupWindow?.dismiss()
-            this@IMEService.popupWindow = null
-        }
-    }
-
-    init {
+    override fun onCreate() {
+        super.onCreate()
+        val indexDict = DiskTrieDictionary(resources.openRawResource(R.raw.hanja_index))
+        val hanjaDict = DiskHanjaDictionary(resources.openRawResource(R.raw.hanja_content))
+        val definitionDict = DiskStringDictionary(resources.openRawResource(R.raw.hanja_definition))
+        val dictionarySet = HanjaDictionarySet(indexDict, hanjaDict, definitionDict)
         val keyboardConfig = KeyboardConfig()
         val qwerty = AlphabetInputMode(keyboardConfig, this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
-        val hangul = HangulInputMode(keyboardConfig, this, hangulModeListener, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
+        val hangul = HangulInputMode(keyboardConfig, dictionarySet, this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
         val symbols = AlphabetInputMode(keyboardConfig, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
         this.inputModes = listOf(
             listOf(qwerty, symbols),
             listOf(hangul, symbols)
         )
-    }
-
-    override fun onCreate() {
-        super.onCreate()
     }
 
     override fun onCreateInputView(): View {
@@ -141,4 +113,34 @@ class IMEService: InputMethodService(), InputMode.Listener {
         setInputView(currentInputMode.getView())
     }
 
+    override fun onDefinition(
+        hangul: String,
+        hanja: String,
+        definition: String
+    ) {
+        this@IMEService.popupWindow?.dismiss()
+        val inputView = currentInputMode.getView()
+        val height = resources.displayMetrics.heightPixels - inputView.height - statusBarHeight
+        val y = -resources.displayMetrics.heightPixels + inputView.height
+        val view = PopupDefinitionBinding.inflate(layoutInflater, null, false)
+        val popup = PopupWindow(
+            view.root,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            height,
+            false
+        )
+        popup.showAtLocation(inputView, Gravity.TOP, 0, y)
+        view.hanja.text = hanja
+        view.hangul.text = hangul
+        view.definition.text = Html.fromHtml(definition)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+        }
+        this@IMEService.popupWindow = popup
+    }
+
+    override fun onCloseDefinition() {
+        this@IMEService.popupWindow?.dismiss()
+        this@IMEService.popupWindow = null
+    }
 }

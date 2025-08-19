@@ -11,20 +11,16 @@ import ee.oyatl.hanjakbd.CandidateView
 import ee.oyatl.hanjakbd.Hangul
 import ee.oyatl.hanjakbd.HangulComposer
 import ee.oyatl.hanjakbd.NonHangulConverter
-import ee.oyatl.hanjakbd.R
 import ee.oyatl.hanjakbd.WordComposer
 import ee.oyatl.hanjakbd.databinding.CandidateViewBinding
-import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
-import ee.oyatl.hanjakbd.dictionary.DiskStringDictionary
-import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
 import ee.oyatl.hanjakbd.keyboard.Keyboard
 import ee.oyatl.hanjakbd.keyboard.KeyboardConfig
 import java.text.Normalizer
 
 class HangulInputMode(
     config: KeyboardConfig,
-    override val listener: InputMode.Listener,
-    val hangulListener: Listener,
+    val dictionarySet: HanjaDictionarySet,
+    override val listener: Listener,
     normalLayout: List<String>,
     shiftedLayout: List<String>,
     combinationTable: Map<Pair<Char, Char>, Char>,
@@ -34,19 +30,11 @@ class HangulInputMode(
     private val wordComposer = WordComposer()
 
     private lateinit var candidateView: CandidateViewBinding
-
-    private lateinit var indexDict: DiskTrieDictionary
-    private lateinit var hanjaDict: DiskHanjaDictionary
-    private lateinit var definitionDict: DiskStringDictionary
     private lateinit var adapter: CandidateView.Adapter
 
     private var candidates: List<Candidate> = listOf()
 
     override fun initView(context: Context): View {
-        indexDict = DiskTrieDictionary(context.resources.openRawResource(R.raw.hanja_index))
-        hanjaDict = DiskHanjaDictionary(context.resources.openRawResource(R.raw.hanja_content))
-        definitionDict = DiskStringDictionary(context.resources.openRawResource(R.raw.hanja_definition))
-
         val height = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             config.numberRowHeight.toFloat(),
@@ -70,15 +58,12 @@ class HangulInputMode(
     }
 
     override fun onChar(char: Char) {
-        if(candidates.isNotEmpty()) {
-            listener.onCommit(wordComposer.word)
-            reset()
-        }
         val commit = normalizeOutput(hangulComposer.onChar(char))
         val compose = normalizeOutput(hangulComposer.composing.orEmpty())
         if(commit.isNotEmpty()) commit.forEach { wordComposer.commit(it.toString()) }
         wordComposer.compose(compose)
         listener.onCompose(wordComposer.word)
+        convertWordAndDisplayCandidates()
         autoReleaseShift()
     }
 
@@ -92,40 +77,24 @@ class HangulInputMode(
     }
 
     private fun onSpace() {
-        if(candidates.isEmpty()) {
-            if(wordComposer.word.isEmpty()) {
-                listener.onCommit(" ")
-                reset()
-            } else {
-                convertWordAndDisplayCandidates()
-            }
-        } else {
-            listener.onCommit(wordComposer.word + " ")
-            reset()
-        }
+        listener.onCommit(wordComposer.word + " ")
+        reset()
     }
 
     private fun onReturn() {
-        if(candidates.isEmpty()) {
-            listener.onEditorAction()
-        } else {
-            listener.onCommit(wordComposer.word)
-        }
+        listener.onCommit(wordComposer.word)
+        listener.onEditorAction()
         reset()
     }
 
     private fun onDelete() {
-        if(candidates.isNotEmpty()) {
-            candidates = listOf()
-            updateCandidates()
-        } else {
-            val length = hangulComposer.onDelete()
-            val compose = normalizeOutput(hangulComposer.composing.orEmpty())
-            val result = wordComposer.delete(length)
-            if(!result) listener.onDelete(1, 0)
-            wordComposer.compose(compose)
-            listener.onCompose(wordComposer.word)
-        }
+        val length = hangulComposer.onDelete()
+        val compose = normalizeOutput(hangulComposer.composing.orEmpty())
+        val result = wordComposer.delete(length)
+        if(!result) listener.onDelete(1, 0)
+        wordComposer.compose(compose)
+        listener.onCompose(wordComposer.word)
+        clearCandidates()
     }
 
     override fun reset() {
@@ -136,14 +105,14 @@ class HangulInputMode(
     }
 
     override fun updateInputView() {
-        keyboardSet.getView(shiftState, candidates.isNotEmpty())
-        candidateView.root.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
+        keyboardSet.getView(shiftState, true)
+//        candidateView.root.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun updateCandidates() {
         adapter.submitList(candidates)
         updateInputView()
-        hangulListener.onCloseDefinition()
+        listener.onCloseDefinition()
     }
 
     private fun onItemClick(candidate: Candidate) {
@@ -157,9 +126,9 @@ class HangulInputMode(
 
     private fun onItemLongClick(candidate: Candidate) {
         if(candidate.index < 0) return
-        val (hangul, hanja) = hanjaDict.get(candidate.index)
-        val definition = definitionDict.get(candidate.index)
-        hangulListener.onDefinition(hangul, hanja, definition)
+        val (hangul, hanja) = dictionarySet.hanjaDict.get(candidate.index)
+        val definition = dictionarySet.definitionDict?.get(candidate.index)
+        if(definition != null) listener.onDefinition(hangul, hanja, definition)
     }
 
     private fun convertWordAndDisplayCandidates() {
@@ -180,8 +149,8 @@ class HangulInputMode(
             return nonHangulConvert(subtext ?: return emptyList())
         }
         val hanjaResult = (1 .. text.length).map { l ->
-            indexDict.search(text.take(l))
-                .map { it to hanjaDict.get(it) }
+            dictionarySet.indexDict.search(text.take(l))
+                .map { it to dictionarySet.hanjaDict.get(it) }
                 .map { Candidate(it.first, it.second.hanja, it.second.frequency.toFloat()) }
                 .filter { it.text.length == l }
         }.flatten()
@@ -207,7 +176,7 @@ class HangulInputMode(
         return compat
     }
 
-    interface Listener {
+    interface Listener: InputMode.Listener {
         fun onDefinition(hangul: String, hanja: String, definition: String)
         fun onCloseDefinition()
     }

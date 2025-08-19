@@ -2,6 +2,8 @@ package ee.oyatl.hanjakbd.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.AudioManager
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -36,12 +38,26 @@ abstract class DefaultKeyboard : Keyboard {
         return row
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     protected fun buildKey(context: Context, char: Char): KbdKeyBinding {
         val inflater = LayoutInflater.from(context)
         val height = getKeyHeight(context)
         val key = KbdKeyBinding.inflate(inflater)
         key.label.text = char.toString()
-        key.root.setOnClickListener { listener.onChar(char) }
+        key.root.setOnTouchListener { view, event ->
+            when(event.actionMasked) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    performFeedback(key.root, AudioManager.FX_KEYPRESS_STANDARD)
+                    view.isPressed = true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    listener.onChar(char)
+                    view.isPressed = false
+                }
+            }
+            view.invalidate()
+            true
+        }
         key.root.layoutParams = LinearLayout.LayoutParams(0, height).apply {
             weight = 1.0f
         }
@@ -87,5 +103,13 @@ abstract class DefaultKeyboard : Keyboard {
             weight = width
         }
         return key.root
+    }
+
+    fun performFeedback(view: View, effectType: Int) {
+        val audioManager = view.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if(config.hapticFeedback)
+            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        if(config.soundFeedback)
+            audioManager.playSoundEffect(effectType, 1f)
     }
 }

@@ -1,6 +1,7 @@
 package ee.oyatl.hanjakbd.input
 
 import android.content.Context
+import android.media.AudioManager
 import android.view.View
 import android.widget.LinearLayout
 import ee.oyatl.hanjakbd.input.InputMode.SwitchType

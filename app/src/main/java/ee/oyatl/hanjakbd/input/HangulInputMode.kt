@@ -2,12 +2,10 @@ package ee.oyatl.hanjakbd.input
 
 import android.content.Context
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.recyclerview.widget.LinearSnapHelper
 import ee.oyatl.hanjakbd.Candidate
 import ee.oyatl.hanjakbd.CandidateView
 import ee.oyatl.hanjakbd.Hangul

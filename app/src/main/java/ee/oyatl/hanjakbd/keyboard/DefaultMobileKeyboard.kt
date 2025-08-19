@@ -1,6 +1,7 @@
 package ee.oyatl.hanjakbd.keyboard
 
 import android.content.Context
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -43,7 +44,10 @@ class DefaultMobileKeyboard(
             R.color.kbd_key_mod_bkg,
             icon,
             1.5f
-        ) { pressed -> listener.onShift(pressed) }, 0)
+        ) { pressed ->
+            if(pressed) performFeedback(row3.root, AudioManager.FX_KEYPRESS_STANDARD)
+            listener.onShift(pressed)
+        }, 0)
 
         val handler = Handler(Looper.getMainLooper())
         fun repeat() {
@@ -57,6 +61,7 @@ class DefaultMobileKeyboard(
             1.5f
         ) { pressed ->
             if(pressed) {
+                performFeedback(row3.root, AudioManager.FX_KEYPRESS_DELETE)
                 listener.onSpecial(Keyboard.SpecialKey.Delete)
                 handler.postDelayed({ repeat() }, 500)
             } else {

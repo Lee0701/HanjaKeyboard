@@ -46,11 +46,12 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
         val dictionarySet = HanjaDictionarySet(indexDict, hanjaDict, definitionDict)
         val keyboardConfig = KeyboardConfig()
         val qwerty = AlphabetInputMode(keyboardConfig, this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
+        val qwertySymbols = AlphabetInputMode(keyboardConfig, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
         val hangul = HangulInputMode(keyboardConfig, dictionarySet, this, Layout2Set.ROWS_LOWER, Layout2Set.ROWS_UPPER, Layout2Set.COMBINATION_TABLE)
-        val symbols = AlphabetInputMode(keyboardConfig, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
+        val hangulSymbols = HangulInputMode(keyboardConfig, dictionarySet, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, mapOf(), autoReleaseShift = false)
         this.inputModes = listOf(
-            listOf(qwerty, symbols),
-            listOf(hangul, symbols)
+            listOf(qwerty, qwertySymbols),
+            listOf(hangul, hangulSymbols)
         )
     }
 

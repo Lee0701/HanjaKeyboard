@@ -8,7 +8,7 @@ object LayoutSymbol {
     )
     val ROWS_UPPER: List<String> = listOf(
         "~`|•√π÷×§∆",
-        "£\$€¥^°={}\\",
+        "£\$€￦^°={}\\",
         "%©®™✓[]"
     )
 }

@@ -8,8 +8,13 @@ object NonHangulConverter {
         "..." to listOf("…"),
         "'" to listOf("「", "」"),
         "\"" to listOf("『", "』"),
-        "[" to listOf("【", "】"),
-        "<" to listOf("〈", "〉", "《", "》")
+        "[" to listOf("「", "【"),
+        "]" to listOf("」", "】"),
+        "{" to listOf("『"),
+        "}" to listOf("』"),
+        "<" to listOf("〈", "《"),
+        ">" to listOf("〉", "》"),
+        "=" to listOf("々", "〃")
     )
 
     val cjkNumberTable: Map<Char, Char> = mapOf(

@@ -128,7 +128,11 @@ class HangulInputMode(
         if(candidate.index < 0) return
         val (hangul, hanja) = dictionarySet.hanjaDict.get(candidate.index)
         val definition = dictionarySet.definitionDict?.get(candidate.index)
-        if(definition != null) listener.onDefinition(hangul, hanja, definition)
+        if(definition != null) listener.onDefinition(hangul, hanja, preprocessDefinition(definition))
+    }
+
+    private fun preprocessDefinition(definition: String): String {
+        return definition.split("\\n").joinToString("") { "<p>$it</p>" }
     }
 
     private fun convertWordAndDisplayCandidates() {

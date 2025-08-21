@@ -117,6 +117,7 @@ class HangulInputMode(
     }
 
     fun revSearch(text: String) {
+        if(text.length > 10) return
         val revIndexDict = dictionarySet.revIndexDict ?: return
         val result = (0 .. text.length).flatMap { i ->
             (i .. text.length).flatMap { j ->

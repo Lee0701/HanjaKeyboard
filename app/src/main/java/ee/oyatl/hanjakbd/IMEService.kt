@@ -1,16 +1,9 @@
 package ee.oyatl.hanjakbd
 
 import android.graphics.Rect
-import android.graphics.text.LineBreaker
 import android.inputmethodservice.InputMethodService
-import android.os.Build
-import android.text.Html
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.PopupWindow
-import ee.oyatl.hanjakbd.databinding.PopupDefinitionBinding
 import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskStringDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
@@ -36,7 +29,7 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
         window.window?.decorView?.getWindowVisibleDisplayFrame(rect) ?: return 0
         return rect.top
     }
-    private var popupWindow: PopupWindow? = null
+    private var definitionPopup: DefinitionPopup? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -119,29 +112,16 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
         hanja: String,
         definition: String
     ) {
-        this@IMEService.popupWindow?.dismiss()
         val inputView = currentInputMode.getView()
-        val height = resources.displayMetrics.heightPixels - inputView.height - statusBarHeight
         val y = -resources.displayMetrics.heightPixels + inputView.height
-        val view = PopupDefinitionBinding.inflate(layoutInflater, null, false)
-        val popup = PopupWindow(
-            view.root,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            height,
-            false
-        )
-        popup.showAtLocation(inputView, Gravity.TOP, 0, y)
-        view.hanja.text = hanja
-        view.hangul.text = hangul
-        view.definition.text = Html.fromHtml(definition)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
-        }
-        this@IMEService.popupWindow = popup
+        val height = resources.displayMetrics.heightPixels - inputView.height - statusBarHeight
+        definitionPopup?.dismiss()
+        definitionPopup = DefinitionPopup(hangul, hanja, definition)
+        definitionPopup?.show(inputView, y, height)
     }
 
     override fun onCloseDefinition() {
-        this@IMEService.popupWindow?.dismiss()
-        this@IMEService.popupWindow = null
+        definitionPopup?.dismiss()
+        definitionPopup = null
     }
 }

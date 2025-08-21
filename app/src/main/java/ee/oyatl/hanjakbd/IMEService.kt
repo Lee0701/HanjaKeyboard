@@ -90,7 +90,7 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
             val composingStart = cursorAnchorInfo.composingTextStart
             val composingLength = cursorAnchorInfo.composingText?.length ?: 0
             val composingEnd = composingStart + composingLength
-            if(cursorAnchorInfo.selectionStart != composingEnd) {
+            if(cursorAnchorInfo.selectionStart != -1 && cursorAnchorInfo.selectionStart != composingEnd) {
                 inputConnection.finishComposingText()
                 currentInputMode.reset()
             }

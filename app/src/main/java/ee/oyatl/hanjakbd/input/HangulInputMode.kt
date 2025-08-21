@@ -89,12 +89,19 @@ class HangulInputMode(
 
     private fun onDelete() {
         val length = hangulComposer.onDelete()
+        if(length > 0) {
+            val deleted = wordComposer.word.takeLast(length)
+            val result = wordComposer.delete(length)
+            if(!result) listener.onDelete(1, 0)
+            if(deleted.isNotEmpty()) {
+                hangulComposer.onReverse(deleted.last())
+                hangulComposer.onDelete()
+            }
+        }
         val compose = normalizeOutput(hangulComposer.composing.orEmpty())
-        val result = wordComposer.delete(length)
-        if(!result) listener.onDelete(1, 0)
         wordComposer.compose(compose)
         listener.onCompose(wordComposer.word)
-        clearCandidates()
+        convertWordAndDisplayCandidates()
     }
 
     override fun reset() {

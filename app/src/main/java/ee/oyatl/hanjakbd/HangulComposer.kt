@@ -66,23 +66,24 @@ class HangulComposer(
 
     fun onReverse(char: Char) {
         val nfd = Hangul.nfd(char.toString())
+        if(nfd.length < 2) return
         val cho = nfd[0]
         val jung = nfd[1]
         val jong = if(nfd.length == 3) nfd[2] else null
-        history += Hangul.toConsonant(cho).toString()
+        history += cho.toString()
         val revJung = reversedCombinationTable[jung]
         if(revJung != null) {
             val (first, _) = revJung
-            history += Hangul.nfc("$cho$first").toString()
+            history += "$cho$first"
         }
-        history += Hangul.nfc("$cho$jung").toString()
+        history += "$cho$jung"
         if(jong != null) {
             val revJong = reversedCombinationTable[jong]
             if(revJong != null) {
                 val (first, _) = revJong
-                history += Hangul.nfc("$cho$jung$first").toString()
+                history += "$cho$jung$first"
             }
-            history += Hangul.nfc("$cho$jung$jong").toString()
+            history += "$cho$jung$jong"
         }
     }
 

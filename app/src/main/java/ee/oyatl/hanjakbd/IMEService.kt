@@ -3,7 +3,9 @@ package ee.oyatl.hanjakbd
 import android.graphics.Rect
 import android.inputmethodservice.InputMethodService
 import android.view.View
+import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import ee.oyatl.hanjakbd.dictionary.DiskHanjaDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskStringDictionary
 import ee.oyatl.hanjakbd.dictionary.DiskTrieDictionary
@@ -61,6 +63,31 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
+    }
+
+    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        currentInputConnection?.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
+    }
+
+    override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
+        super.onUpdateCursorAnchorInfo(cursorAnchorInfo)
+        cursorAnchorInfo ?: return
+
+        // Reset composition if area is selected.
+        if(cursorAnchorInfo.selectionStart != cursorAnchorInfo.selectionEnd) {
+            currentInputConnection?.finishComposingText()
+            currentInputMode.reset()
+        }
+
+        // Reset composition if the cursor is not at the end of the composing text
+        val composingStart = cursorAnchorInfo.composingTextStart
+        val composingLength = cursorAnchorInfo.composingText?.length ?: 0
+        val composingEnd = composingStart + composingLength
+        if(cursorAnchorInfo.selectionStart != composingEnd) {
+            currentInputConnection?.finishComposingText()
+            currentInputMode.reset()
+        }
     }
 
     override fun onEvaluateInputViewShown(): Boolean {

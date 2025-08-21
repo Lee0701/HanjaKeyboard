@@ -38,7 +38,8 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
         val indexDict = DiskTrieDictionary(resources.openRawResource(R.raw.hanja_index))
         val hanjaDict = DiskHanjaDictionary(resources.openRawResource(R.raw.hanja_content))
         val definitionDict = DiskStringDictionary(resources.openRawResource(R.raw.hanja_definition))
-        val dictionarySet = HanjaDictionarySet(indexDict, hanjaDict, definitionDict)
+        val revIndexDict = DiskTrieDictionary(resources.openRawResource(R.raw.hanja_rev_index))
+        val dictionarySet = HanjaDictionarySet(indexDict, hanjaDict, definitionDict, revIndexDict)
         val keyboardConfig = KeyboardConfig()
         val qwerty = AlphabetInputMode(keyboardConfig, this, LayoutQwerty.ROWS_LOWER, LayoutQwerty.ROWS_UPPER)
         val qwertySymbols = AlphabetInputMode(keyboardConfig, this, LayoutSymbol.ROWS_LOWER, LayoutSymbol.ROWS_UPPER, autoReleaseShift = false)
@@ -77,8 +78,13 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
 
         // Reset composition if area is selected.
         if(cursorAnchorInfo.selectionStart != cursorAnchorInfo.selectionEnd) {
+            val currentInputMode = this.currentInputMode
             inputConnection.finishComposingText()
             currentInputMode.reset()
+            if(currentInputMode is HangulInputMode) {
+                val selectedText = inputConnection.getSelectedText(0)
+                currentInputMode.revSearch(selectedText.toString())
+            }
         } else {
             // Reset composition if the cursor is not at the end of the composing text
             val composingStart = cursorAnchorInfo.composingTextStart

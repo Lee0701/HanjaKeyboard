@@ -116,6 +116,23 @@ class HangulInputMode(
 //        candidateView.root.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
+    fun revSearch(text: String) {
+        val revIndexDict = dictionarySet.revIndexDict ?: return
+        val result = (0 .. text.length).flatMap { i ->
+            (i .. text.length).flatMap { j ->
+                val subText = text.slice(i until j)
+                revIndexDict.search(subText)
+                    .map { it to dictionarySet.hanjaDict.get(it) }
+                    .map { Candidate(it.first, it.second.hanja, it.second.frequency.toFloat()) }
+            }
+        }
+            .filter { it.text.isNotEmpty() }
+            .distinctBy { it.index }
+            .sortedByDescending { it.length }
+        candidates = result
+        updateCandidates()
+    }
+
     private fun updateCandidates() {
         adapter.submitList(candidates)
         updateInputView()
@@ -159,12 +176,12 @@ class HangulInputMode(
                 .find { t -> t.all { Hangul.type(it) == Hangul.Type.NonHangul } }
             return nonHangulConvert(subtext ?: return emptyList())
         }
-        val hanjaResult = (1 .. text.length).map { l ->
+        val hanjaResult = (1 .. text.length).flatMap { l ->
             dictionarySet.indexDict.search(text.take(l))
                 .map { it to dictionarySet.hanjaDict.get(it) }
                 .map { Candidate(it.first, it.second.hanja, it.second.frequency.toFloat()) }
                 .filter { it.text.length == l }
-        }.flatten()
+        }
             .sortedByDescending { it.score }
             .sortedByDescending { it.text.length }
         return getDefaultCandidates(text) + hanjaResult

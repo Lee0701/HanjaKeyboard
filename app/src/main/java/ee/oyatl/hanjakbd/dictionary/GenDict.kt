@@ -4,8 +4,9 @@ import java.io.DataOutputStream
 import java.io.File
 
 fun main(args: Array<String>) {
-    val (input, indexDictOut, contentDictOut, definitionDictOut) = args
+    val (input, outDir) = args
     val indexDict = TrieDictionary()
+    val revIndexDict = TrieDictionary()
     val contentDict = HanjaDictionary()
     val definitionDict = StringDictionary()
     var i = 0
@@ -14,12 +15,15 @@ fun main(args: Array<String>) {
         if(tokens.size == 4) {
             val (hangul, hanja, freq, definition) = tokens
             indexDict.insert(hangul, i)
+            revIndexDict.insert(hanja, i)
             contentDict.insert(hangul, hanja, freq.toInt(), "")
             definitionDict.insert(definition)
             i += 1
         }
     }
-    indexDict.write(DataOutputStream(File(indexDictOut).outputStream()))
-    contentDict.write(DataOutputStream(File(contentDictOut).outputStream()))
-    definitionDict.write(DataOutputStream(File(definitionDictOut).outputStream()))
+    val outDirFile = File(outDir)
+    indexDict.write(DataOutputStream(File(outDirFile, "hanja_index.bin").outputStream()))
+    revIndexDict.write(DataOutputStream(File(outDirFile, "hanja_rev_index.bin").outputStream()))
+    contentDict.write(DataOutputStream(File(outDirFile, "hanja_content.bin").outputStream()))
+    definitionDict.write(DataOutputStream(File(outDirFile, "hanja_definition.bin").outputStream()))
 }

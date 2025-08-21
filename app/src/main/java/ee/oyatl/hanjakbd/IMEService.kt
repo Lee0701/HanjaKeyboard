@@ -72,21 +72,22 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
         super.onUpdateCursorAnchorInfo(cursorAnchorInfo)
+        val inputConnection = currentInputConnection ?: return
         cursorAnchorInfo ?: return
 
         // Reset composition if area is selected.
         if(cursorAnchorInfo.selectionStart != cursorAnchorInfo.selectionEnd) {
-            currentInputConnection?.finishComposingText()
+            inputConnection.finishComposingText()
             currentInputMode.reset()
-        }
-
-        // Reset composition if the cursor is not at the end of the composing text
-        val composingStart = cursorAnchorInfo.composingTextStart
-        val composingLength = cursorAnchorInfo.composingText?.length ?: 0
-        val composingEnd = composingStart + composingLength
-        if(cursorAnchorInfo.selectionStart != composingEnd) {
-            currentInputConnection?.finishComposingText()
-            currentInputMode.reset()
+        } else {
+            // Reset composition if the cursor is not at the end of the composing text
+            val composingStart = cursorAnchorInfo.composingTextStart
+            val composingLength = cursorAnchorInfo.composingText?.length ?: 0
+            val composingEnd = composingStart + composingLength
+            if(cursorAnchorInfo.selectionStart != composingEnd) {
+                inputConnection.finishComposingText()
+                currentInputMode.reset()
+            }
         }
     }
 

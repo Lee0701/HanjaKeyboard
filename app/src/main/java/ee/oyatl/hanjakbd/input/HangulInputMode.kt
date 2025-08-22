@@ -33,6 +33,7 @@ class HangulInputMode(
     private lateinit var adapter: CandidateView.Adapter
 
     private var candidates: List<Candidate> = listOf()
+    private var candidatesMode: CandidatesMode = CandidatesMode.NONE
 
     override fun initView(context: Context): View {
         val height = TypedValue.applyDimension(
@@ -116,24 +117,6 @@ class HangulInputMode(
 //        candidateView.root.visibility = if(candidates.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    fun revSearch(text: String) {
-        if(text.length > 10) return
-        val revIndexDict = dictionarySet.revIndexDict ?: return
-        val result = (0 .. text.length).flatMap { i ->
-            (i .. text.length).flatMap { j ->
-                val subText = text.slice(i until j)
-                revIndexDict.search(subText)
-                    .map { it to dictionarySet.hanjaDict.get(it) }
-                    .map { Candidate(it.first, it.second.hanja, it.second.frequency.toFloat()) }
-            }
-        }
-            .filter { it.text.isNotEmpty() }
-            .distinctBy { it.index }
-            .sortedByDescending { it.length }
-        candidates = result
-        updateCandidates()
-    }
-
     private fun updateCandidates() {
         adapter.submitList(candidates)
         updateInputView()
@@ -141,6 +124,26 @@ class HangulInputMode(
     }
 
     private fun onItemClick(candidate: Candidate) {
+        if(candidatesMode == CandidatesMode.REV_SEARCH) displayDefinition(candidate)
+        else commitCandidate(candidate)
+    }
+
+    private fun onItemLongClick(candidate: Candidate) {
+        displayDefinition(candidate)
+    }
+
+    private fun preprocessDefinition(definition: String): String {
+        return definition.split("\\n").joinToString("") { "<p>$it</p>" }
+    }
+
+    private fun displayDefinition(candidate: Candidate) {
+        if(candidate.index < 0) return
+        val (hangul, hanja) = dictionarySet.hanjaDict.get(candidate.index)
+        val definition = dictionarySet.definitionDict?.get(candidate.index)
+        if(definition != null) listener.onDefinition(hangul, hanja, preprocessDefinition(definition))
+    }
+
+    fun commitCandidate(candidate: Candidate) {
         listener.onCommit(candidate.text)
         wordComposer.consume(candidate.length)
         listener.onCompose(wordComposer.word)
@@ -149,24 +152,22 @@ class HangulInputMode(
         hangulComposer.reset()
     }
 
-    private fun onItemLongClick(candidate: Candidate) {
-        if(candidate.index < 0) return
-        val (hangul, hanja) = dictionarySet.hanjaDict.get(candidate.index)
-        val definition = dictionarySet.definitionDict?.get(candidate.index)
-        if(definition != null) listener.onDefinition(hangul, hanja, preprocessDefinition(definition))
-    }
-
-    private fun preprocessDefinition(definition: String): String {
-        return definition.split("\\n").joinToString("") { "<p>$it</p>" }
-    }
-
-    private fun convertWordAndDisplayCandidates() {
+    fun convertWordAndDisplayCandidates() {
         candidates = convert(wordComposer.word)
+        candidatesMode = CandidatesMode.CONVERT
+        updateCandidates()
+    }
+
+    fun revSearchAndDisplayCandidates(text: String) {
+        if(text.length > 10) return
+        candidates = revSearch(text)
+        candidatesMode = CandidatesMode.REV_SEARCH
         updateCandidates()
     }
 
     private fun clearCandidates() {
         candidates = emptyList()
+        candidatesMode = CandidatesMode.NONE
         updateCandidates()
     }
 
@@ -186,6 +187,22 @@ class HangulInputMode(
             .sortedByDescending { it.score }
             .sortedByDescending { it.text.length }
         return getDefaultCandidates(text) + hanjaResult
+    }
+
+    private fun revSearch(text: String): List<Candidate> {
+        val revIndexDict = dictionarySet.revIndexDict ?: return emptyList()
+        val result = (0 .. text.length).flatMap { i ->
+            (i .. text.length).flatMap { j ->
+                val subText = text.slice(i until j)
+                revIndexDict.search(subText)
+                    .map { it to dictionarySet.hanjaDict.get(it) }
+                    .map { Candidate(it.first, it.second.hanja, it.second.frequency.toFloat()) }
+            }
+        }
+            .filter { it.text.isNotEmpty() }
+            .distinctBy { it.index }
+            .sortedByDescending { it.length }
+        return result
     }
 
     private fun nonHangulConvert(text: String): List<Candidate> {
@@ -208,5 +225,9 @@ class HangulInputMode(
     interface Listener: InputMode.Listener {
         fun onDefinition(hangul: String, hanja: String, definition: String)
         fun onCloseDefinition()
+    }
+
+    enum class CandidatesMode {
+        NONE, CONVERT, REV_SEARCH
     }
 }

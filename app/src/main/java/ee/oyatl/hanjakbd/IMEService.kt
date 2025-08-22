@@ -83,7 +83,7 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
             currentInputMode.reset()
             if(currentInputMode is HangulInputMode) {
                 val selectedText = inputConnection.getSelectedText(0)
-                currentInputMode.revSearch(selectedText.toString())
+                currentInputMode.revSearchAndDisplayCandidates(selectedText.toString())
             }
         } else {
             // Reset composition if the cursor is not at the end of the composing text

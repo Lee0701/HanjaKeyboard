@@ -40,18 +40,36 @@
                 android:textSize="16sp" />
 
             <androidx.core.widget.NestedScrollView
+                android:scrollbars="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/definition"
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="10dp"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="20sp" />
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/definition"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="20sp" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
             </androidx.core.widget.NestedScrollView>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/close"
+                android:src="@drawable/baseline_close_24"
+                android:tint="?android:attr/textColorPrimary"
+                android:background="?android:selectableItemBackground"
+                android:paddingVertical="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 

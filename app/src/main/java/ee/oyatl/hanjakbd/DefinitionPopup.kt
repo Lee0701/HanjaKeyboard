@@ -33,6 +33,7 @@ class DefinitionPopup(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             view.definition.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
         }
+        view.close.setOnClickListener { dismiss() }
         this.popupWindow = popup
     }
 

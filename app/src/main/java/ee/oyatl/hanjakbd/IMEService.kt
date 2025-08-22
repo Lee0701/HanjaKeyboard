@@ -156,6 +156,5 @@ class IMEService: InputMethodService(), InputMode.Listener, HangulInputMode.List
 
     override fun onCloseDefinition() {
         definitionPopup?.dismiss()
-        definitionPopup = null
     }
 }
